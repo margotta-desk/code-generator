@@ -1,0 +1,49 @@
+export class <%-Model.ClassName%>Params implements I<%-Model.ClassName%>Params {
+<%
+	if (Model.Key) 
+	{
+		Model.Key.Properties.forEach((property, index) => {
+%>	@IsNotEmpty()
+<%
+			if (property.PropertyType === 'number')
+			{
+%>	@IsNumber()
+<%
+			}
+
+			if (property.PropertyType === 'boolean')
+			{
+%>	@IsBoolean()
+<%
+			}
+
+			if (property.PropertyType === 'date')
+			{
+%>	@IsDate()
+<%
+			}
+
+			if (property.PropertyType === 'string' && property.UdtType === 'uuid')
+			{
+%>	@IsUUID()
+<%
+			}
+
+			if (property.PropertyType === 'string' && property.UdtType === 'varchar')
+			{
+%>	@IsString()
+<%
+			}
+
+%>	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+<%
+
+			if (index !== Model.Key.Properties.length -1) 
+			{
+%>
+<%
+			}
+
+		})
+	}
+%>}

@@ -1,0 +1,26 @@
+<%-Imports.trim()%>
+
+@Module({
+	imports:
+		[
+			TypeOrmModule.forFeature([
+				<%= Model.Classes.map(m => `${m.ClassName}Model,`).join('\n\t\t\t\t') %>
+			])
+		],
+	controllers:
+		[
+			<%= Model.Classes.map(m => `${m.ClassName}Controller,`).join('\n\t\t\t') %>
+		],
+	providers:
+		[
+			//	Repositories
+			<%= Model.Classes.map(m => `${m.ClassName}Repository,`).join('\n\t\t\t') %>
+
+			//	Services
+			<%= Model.Classes.map(m => `${m.ClassName}Service,`).join('\n\t\t\t') %>
+		],
+	exports:
+		[
+		]
+})
+export class <%-Model.ModuleName%>Module { }

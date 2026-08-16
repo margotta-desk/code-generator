@@ -1,0 +1,5 @@
+<%-Imports.trim()%>
+
+export const SERIALIZE_KEY = 'serialize:type'
+
+export const Serialize = <T>(type: Type<T>) => SetMetadata(SERIALIZE_KEY, type)

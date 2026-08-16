@@ -1,0 +1,83 @@
+<%-Imports.trim()%>
+
+@Injectable()
+export class <%-Model.ClassName%>Repository {
+<%
+	if (Model.ReadOnly) {
+%>	constructor(@InjectRepository(<%-Model.ClassName%>Model) private repository: Repository<<%-Model.ClassName%>Model>) { }
+<%
+
+	}
+	else {
+%>	constructor(@InjectRepository(<%-Model.ClassName%>Model) private repository: Repository<<%-Model.ClassName%>Model>, private readonly eventEmitter: EventEmitter2) { }
+<%
+	}
+%>
+	public Get = async (key: I<%-Model.ClassName%>Key): Promise<I<%-Model.ClassName%>Model | null> => await this.repository.findOne({
+		where: {
+			<%- Model.Key?.Properties.map(property => `${property.PropertyName}: key.${property.PropertyName}`).join(',\n\t\t\t') %>
+		}
+	})
+
+	public Find = async (query: I<%-Model.ClassName%>Query): Promise<I<%-Model.ClassName%>Model[]> => await this.repository.find({ where: await this.where(query) })
+
+	public Exists = async (query: I<%-Model.ClassName%>Query): Promise<boolean> => await this.repository.exists({ where: await this.where(query) })
+<%
+	if (!Model.ReadOnly) {
+		if (Model.Key.PropertiesGenerated.length !== 0) {
+%>
+	public Create = async (entity: Omit<I<%-Model.ClassName%>Entity, <%-Model.Key.PropertiesGenerated.map(m => `'${m.PropertyName}'`).join(', ')%>>): Promise<I<%-Model.ClassName%>Model> => {
+<%
+		}
+		else {
+%>
+	public Create = async (entity: I<%-Model.ClassName%>Entity): Promise<I<%-Model.ClassName%>Model> => {
+<%
+		}
+%>		const item: I<%-Model.ClassName%>Model = await this.repository.save(entity)
+
+		const created: I<%-Model.ClassName%>Model = await this.Get(item)
+
+		this.eventEmitter.emit(<%-Model.ClassName%>Events.OnCreated, created)
+
+		return created
+	}
+
+	public Update = async (key: I<%-Model.ClassName%>Key, value: Partial<I<%-Model.ClassName%>Value>): Promise<I<%-Model.ClassName%>Model | null> => {
+		const previous: I<%-Model.ClassName%>Model = await this.Get(key)
+
+		if (!previous) return null
+
+		await this.repository.update({
+			<%- Model.Key?.Properties.map(property => `${property.PropertyName}: key.${property.PropertyName}`).join(',\n\t\t\t') %>
+		}, value)
+
+		const updated: I<%-Model.ClassName%>Model = await this.Get(key)
+
+		this.eventEmitter.emit(<%-Model.ClassName%>Events.OnUpdated, previous, updated)
+
+		return updated
+	}
+
+	public Remove = async (key: I<%-Model.ClassName%>Key): Promise<I<%-Model.ClassName%>Model | null> => {
+		const removed: I<%-Model.ClassName%>Model = await this.Get(key)
+
+		if (!removed) return null
+
+		await this.repository.delete({
+			<%- Model.Key?.Properties.map(property => `${property.PropertyName}: key.${property.PropertyName}`).join(',\n\t\t\t') %>
+		})
+
+		this.eventEmitter.emit(<%-Model.ClassName%>Events.OnRemoved, removed)
+
+		return removed
+	}
+<%
+	}
+%>
+	private where = async (query: I<%-Model.ClassName%>Query): Promise<FindOptionsWhere<I<%-Model.ClassName%>Model>> => {
+		const where: FindOptionsWhere<I<%-Model.ClassName%>Model> = {}
+
+		return where
+	}
+}

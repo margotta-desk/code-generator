@@ -1,0 +1,32 @@
+export interface I<%=Model.ClassName%>Response {
+<%
+	if (Model.Properties.length !== 0) {
+%>	//	Properties
+<%
+		Model.Properties.forEach((property) => {
+%>	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+<%
+		})
+	}
+
+	if (Model.OneToOne.length !== 0) {
+%>
+	//	One to One
+<%
+		Model.OneToOne.forEach((reference) => {
+%>	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Response
+<%
+		})
+	}
+
+	if (Model.ManyToOne.length !== 0) {
+%>
+	//	Many to One
+<%
+		Model.ManyToOne.forEach((reference) => {
+%>	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Response
+<%
+		})
+	}
+
+%>}

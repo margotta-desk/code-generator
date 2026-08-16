@@ -1,0 +1,9 @@
+	@Patch('<%-Model.Key.Properties.map(m=>`:${m.PropertyName}`).join('/')%>')
+<%
+	Model.Key?.Properties.forEach((property) => {
+%>	@ApiParam({ name: '<%-property.PropertyName%>', type: String, format: '<%-property.UdtType%>' })
+<%
+	})
+%>	async Update(@Param() params: <%=Model.ClassName%>Params, @Body() body: Partial<<%=Model.ClassName%>Body>): Promise<I<%=Model.ClassName%>Response> {
+		return await this.<%-Model.FieldName%>Service.Update(params, body)
+	}

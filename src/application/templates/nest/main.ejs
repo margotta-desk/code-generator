@@ -1,0 +1,52 @@
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common'
+import { NestApplication, NestFactory, Reflector } from '@nestjs/core'
+import { IoAdapter } from '@nestjs/platform-socket.io'
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
+import { Settings } from 'luxon'
+import { AppModule } from './app.module'
+import { SerializeInterceptor } from './modules/shared'
+
+async function bootstrap() {
+	// Set the default locale globally
+	Settings.defaultLocale = 'es-CL' // Example: Spanish (Spain) locale
+	Settings.defaultZone = 'America/Santiago'
+
+	const app = await NestFactory.create<NestApplication>(AppModule, { bodyParser: true })
+
+	app.enableCors()
+	app.setGlobalPrefix('api')
+	app.useWebSocketAdapter(new IoAdapter(app))
+	app.useGlobalPipes(
+		new ValidationPipe({
+			forbidNonWhitelisted: true,	// Lanza error si llega una propiedad no validada
+			forbidUnknownValues: false,	// (Opcional, similar a forbidNonWhitelisted)
+			transform: true, 			// Transforma los datos entrantes (JSON) a objetos de ES6 para usar los decoradores
+			transformOptions: {
+				enableImplicitConversion: true
+			},
+			whitelist: true 			// Ignora propiedades no definidas en el Dto
+		})
+	)
+
+	app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector), {
+		excludeExtraneousValues: true,
+		enableImplicitConversion: true,
+	}))
+
+	app.useGlobalInterceptors(new SerializeInterceptor(app.get(Reflector)))
+
+	const config = new DocumentBuilder()
+		.setTitle('<%-Project.name%>')
+		.setDescription('<%-Project.description%>')
+		.setVersion('<%-Project.version%>')
+		.build()
+
+	const document = SwaggerModule.createDocument(app, config)
+
+	// Ruta donde estará disponible la documentación (en este caso /api)
+	SwaggerModule.setup('', app, document)
+
+	await app.listen(process.env.PORT ?? 3000)
+
+}
+bootstrap()

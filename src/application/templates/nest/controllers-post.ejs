@@ -1,0 +1,29 @@
+<%
+if (Model.Key.PropertiesNonGenerated.length === 0) 
+{
+%>
+	@Post()
+	async Create(@Body() body: <%-Model.ClassName%>Body): Promise<I<%-Model.ClassName%>Response> {
+		return await this.<%-Model.FieldName%>Service.Create(body)
+	}
+<%
+}
+else if (Model.Type === 'many-to-many') 
+{
+%>
+	@Post('<%-Model.Key.PropertiesNonGenerated.map(m=>`:${m.PropertyName}`).join('/')%>')
+	async Create(<%-Model.Key.PropertiesNonGenerated.map(m=>`@Param('${m.PropertyName}') ${m.PropertyName}: ${m.PropertyType}`).join(', ')%>): Promise<I<%=Model.ClassName%>Response> {
+		return await this.<%-Model.FieldName%>Service.Create({ <%-Model.Key.PropertiesNonGenerated.map(m => m.PropertyName ).join(', ')%> })
+	}
+<%
+}
+else 
+{
+%>
+	@Post('<%-Model.Key.PropertiesNonGenerated.map(m=>`:${m.PropertyName}`).join('/')%>')
+	async Create(<%-Model.Key.PropertiesNonGenerated.map(m=>`@Param('${m.PropertyName}') ${m.PropertyName}: ${m.PropertyType}`).join(', ')%>, @Body() body: <%=Model.ClassName%>Body): Promise<I<%=Model.ClassName%>Response> {
+		return await this.<%-Model.FieldName%>Service.Create({ <%-Model.Key.PropertiesNonGenerated.map(m => m.PropertyName ).join(', ')%>, ...body })
+	}
+<%
+}
+%>

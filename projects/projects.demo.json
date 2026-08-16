@@ -1,0 +1,28 @@
+{
+	"margotta-desk": {
+		"name": "Project Name",
+		"description": "Project description",
+		"path": "./",
+		"version": "0.0.0",
+		"author": {
+			"name": "Your name",
+			"email": "username@domain.com",
+			"url": "https://www.your-homepage.cl"
+		},
+		"connection": {
+			"hostname": "localhost",
+			"port": 5432,
+			"database": "postgres",
+			"username": "",
+			"password": ""
+		},
+		"schemas": {
+			"public": false
+		},
+		"layers": {
+			"packages": true,
+			"backend": "nest",
+			"frontend": false
+		}
+	}
+}

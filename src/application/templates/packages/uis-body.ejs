@@ -1,0 +1,11 @@
+<%
+	if (Model.Values.length !== 0) {
+
+%>export interface I<%-Model.ClassName%>Body {
+<%
+		Model.Values.forEach((property) => {
+%>	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+<%
+		})
+	}
+%>}

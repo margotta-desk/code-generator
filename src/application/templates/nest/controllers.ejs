@@ -1,0 +1,26 @@
+<%-Imports.trim()%>
+
+@ApiTags('<%-Model.Module.FileName%>')
+@Controller('<%-Model.FileName%>')
+@Serialize(<%-Model.ClassName%>Response)
+export class <%-Model.ClassName%>Controller {
+	constructor(private readonly <%-Model.FieldName%>Service: <%-Model.ClassName%>Service) { }
+
+	<%-Get.trim()%>
+
+	<%-Find.trim()%>
+<%
+	if (Model.ReadOnly === false) {
+%>
+	<%-Post.trim()%>
+<%
+	if (Model.Type === 'entity') {
+%>
+	<%-Patch.trim()%>
+<%
+	}
+%>
+	<%-Remove.trim()%>
+<%
+	}
+%>}

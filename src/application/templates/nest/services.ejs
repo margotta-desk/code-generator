@@ -1,0 +1,37 @@
+<%-Imports.trim()%>
+
+@Injectable()
+export class <%-Model.ClassName%>Service {
+	private readonly logger: Logger = new Logger("<%-Model.ClassName%>Service")
+<%
+	if (!Model.ReadOnly) {
+%>	//	Remover
+	@OnEvent(<%-Model.ClassName%>Events.OnCreated) private async onCreated(created: I<%-Model.ClassName%>Model): Promise<void> { this.logger.log(<%-Model.ClassName%>Events.OnCreated) }
+	@OnEvent(<%-Model.ClassName%>Events.OnUpdated) private async onUpdated(previous: I<%-Model.ClassName%>Model, updated: I<%-Model.ClassName%>Model): Promise<void> { this.logger.log(<%-Model.ClassName%>Events.OnUpdated) }
+	@OnEvent(<%-Model.ClassName%>Events.OnRemoved) private async onRemoved(removed: I<%-Model.ClassName%>Model): Promise<void> { this.logger.log(<%-Model.ClassName%>Events.OnRemoved) }
+
+<%
+	}
+%>	constructor(private readonly repository: <%-Model.ClassName%>Repository) { }
+
+	public Get = async (key: I<%-Model.ClassName%>Key): Promise<I<%-Model.ClassName%>Model | null> => this.repository.Get(key)
+
+	public Find = async (query: I<%-Model.ClassName%>Query): Promise<I<%-Model.ClassName%>Model[]> => this.repository.Find(query)
+<%
+	if (!Model.ReadOnly) {
+		if (Model.Key.PropertiesGenerated.length !== 0) {
+%>
+	public Create = async (entity: Omit<I<%-Model.ClassName%>Entity, <%-Model.Key.PropertiesGenerated.map(m => `'${m.PropertyName}'`).join(', ')%>>): Promise<I<%-Model.ClassName%>Model> => this.repository.Create(entity)
+<%
+		}
+		else {
+%>
+	public Create = async (entity: I<%-Model.ClassName%>Entity): Promise<I<%-Model.ClassName%>Model> => this.repository.Create(entity)
+<%
+		}
+%>
+	public Update = async (key: I<%-Model.ClassName%>Key, value: Partial<I<%-Model.ClassName%>Value>): Promise<I<%-Model.ClassName%>Model> => this.repository.Update(key, value)
+
+	public Remove = async (key: I<%-Model.ClassName%>Key): Promise<I<%-Model.ClassName%>Model> => this.repository.Remove(key)
+<%	}
+%>}

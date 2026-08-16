@@ -1,0 +1,55 @@
+export class <%-Model.ClassName%>Response implements I<%-Model.ClassName%>Response {<%
+	if (Model.OneToOne.length !== 0)
+	{
+%>
+	//	One to One
+<%
+		Model.OneToOne.forEach((reference, index) => {
+%>	@Expose()
+	@Type(() => <%-reference.Class.ClassName%>Response)
+	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Response
+<%
+			if (index + 1 != Model.OneToOne.length)
+			{
+%>
+<%
+			}
+		})
+	}
+
+
+	if (Model.ManyToOne.length !== 0)
+	{
+%>
+	//	Many to One
+<%
+		Model.ManyToOne.forEach((reference, index) => {
+%>	@Expose()
+	@Type(() => <%-reference.Class.ClassName%>Response)
+	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Response
+<%
+			if (index + 1 != Model.ManyToOne.length)
+			{
+%>
+<%
+			}
+		})
+	}
+
+	if (Model.Properties.length !== 0)
+	{
+%>
+	//	Properties
+<%
+		Model.Properties.forEach((property, index) => {
+%>	@Expose()
+	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+<%
+			if (index + 1 != Model.Properties.length)
+			{
+%>
+<%
+			}
+		})
+	}
+%>}

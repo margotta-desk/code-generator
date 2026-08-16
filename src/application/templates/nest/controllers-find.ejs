@@ -1,0 +1,4 @@
+	@Get()
+	async Find(@Query() query: <%-Model.ClassName%>Query): Promise<I<%-Model.ClassName%>Response[]> {
+		return await this.<%-Model.FieldName%>Service.Find(query)
+	}

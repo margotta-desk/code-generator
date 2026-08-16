@@ -1,0 +1,65 @@
+<%-Imports%>
+@Module({
+	imports:
+		[
+			//	Config module
+			ConfigModule.forRoot({
+				envFilePath: ['.env.local', '.env'],
+				isGlobal: true
+			}),
+
+			//	Event emitter module
+			EventEmitterModule.forRoot({ global: true }),
+
+			//	Json Web Token module
+			JwtModule.registerAsync({
+				global: true,
+				imports: [ConfigModule],
+				useFactory: async (configService: ConfigService) => ({
+					secret: configService.get<string>('JWT_SECRET_KEY'),
+					signOptions: { expiresIn: '24Hours' },
+					verifyOptions: { ignoreExpiration: true }
+				}),
+				inject: [ConfigService],
+			}),
+
+			//	Schedule module
+			ScheduleModule.forRoot({}),
+
+			//	TypeORM module
+			TypeOrmModule.forRootAsync({
+				imports: [ConfigModule],
+				useFactory: (configService: ConfigService) => ({
+					type: 'postgres',
+					host: configService.get<string>('POSTGRESQL_HOST'),
+					port: configService.get<number>('POSTGRESQL_PORT'),
+					username: configService.get<string>('POSTGRESQL_USER'),
+					password: configService.get<string>('POSTGRESQL_PASS'),
+					database: configService.get<string>('POSTGRESQL_BASE'),
+					autoLoadEntities: true,
+					retryAttempts: 1,
+					synchronize: false,
+					migrationsRun: false,
+				}),
+				inject: [ConfigService]
+			}),
+			SharedModule,
+
+			//	Domain modules
+			RouterModule.register(
+				[
+<%
+	Modules.forEach((module)=> {
+%>					{ path: "<%-module.FileName == 'core' ? '': module.FileName %>", module: <%-module.ModuleName%>Module },
+<%
+	})
+%>				]
+			),
+<%
+	Modules.forEach((module)=> {
+%>			<%-module.ModuleName%>Module,
+<%
+	})
+%>		],
+})
+export class AppModule { }

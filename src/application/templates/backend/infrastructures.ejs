@@ -1,0 +1,96 @@
+<%-Imports.trim()%>
+
+@Entity({ name: '<%-Model.TableName%>', schema: '<%-Model.Module.SchemaName%>' })
+export class <%-Model.ClassName%>Model implements I<%-Model.ClassName%>Model {<%
+	if (Model.Properties.length !== 0) {
+%>
+	//	Properties
+<%
+		Model.Properties.forEach((property, index) => {
+			if (Model.Key?.Properties.includes(property)) {
+				if (property.ColumnDefault) {
+%>	@PrimaryGeneratedColumn('<%-property.UdtType%>', { name: '<%-property.ColumnName%>', primaryKeyConstraintName: '<%-Model.Key.ConstraintName%>' })
+	<%-property.PropertyName%><%- property.Nullable ? '?': '!' %>: <%-property.PropertyType%>
+<%
+				}
+				else {
+%>	@PrimaryColumn({ name: '<%-property.ColumnName%>', type: '<%-property.UdtType%>', primaryKeyConstraintName: '<%-Model.Key.ConstraintName%>' })
+	<%-property.PropertyName%><%- property.Nullable ? '?': '!' %>: <%-property.PropertyType%>
+<%
+				}
+			}
+			else {
+%>	@Column({ name: '<%-property.ColumnName%>', type: '<%-property.UdtType%>', nullable: <%-property.Nullable%> })
+	<%-property.PropertyName%><%- property.Nullable ? '?': '!' %>: <%-property.PropertyType%>
+<%
+			}
+
+			if (index !== Model.Properties.length - 1) {
+%>
+<%
+			}
+		})
+	}
+
+	if (Model.OneToOne.length !== 0) {
+%>
+	//	One to One
+<%
+		Model.OneToOne.forEach((reference, index) => {
+%>	@OneToOne(() => <%-reference.Class.ClassName%>Model, { eager: false, cascade: false })
+	@JoinColumn([<%-reference.Properties.map(property => `{ name: '${property.Foreign.ColumnName}', referencedColumnName: '${property.Primary.PropertyName}', foreignKeyConstraintName: '${reference.ConstraintName}' }`).join(', ')%>])
+	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Model
+<%
+			if (index !== Model.OneToOne.length - 1) {
+%>
+<%
+			}
+		})
+	}
+
+	if (Model.OneToOneReversed.length !== 0) {
+%>
+	//	One to One (Reversed)
+<%
+		Model.OneToOneReversed.forEach((reference, index) => {
+%>	@OneToOne(() => <%-reference.Referenced.ClassName%>Model, (reference: <%-reference.Referenced.ClassName%>Model) => reference.<%-reference.Class.ClassName%>, { eager: false, cascade: false })
+	<%-reference.Referenced.ClassName%>?: I<%-reference.Referenced.ClassName%>Model
+<%
+			if (index !== Model.OneToOneReversed.length - 1) {
+%>
+<%
+			}
+		})
+	}
+
+	if (Model.ManyToOne.length !== 0) {
+%>
+	//	Many to One
+<%
+		Model.ManyToOne.forEach((reference, index) => {
+%>	@ManyToOne(() => <%-reference.Class.ClassName%>Model, { eager: false, cascade: false })
+	@JoinColumn([<%-reference.Properties.map(property => `{ name: '${property.Foreign.ColumnName}', referencedColumnName: '${property.Primary.PropertyName}', foreignKeyConstraintName: '${reference.ConstraintName}' }`).join(', ')%>])
+	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Model
+<%
+			if (index !== Model.ManyToOne.length - 1) {
+%>
+<%
+			}
+		})
+	}
+
+	if (Model.ManyToOneReversed.length !== 0) {
+%>
+	//	One to Many (Reversed)
+<%
+		Model.ManyToOneReversed.forEach((reference, index) => {
+%>	@OneToMany(() => <%-reference.Referenced.ClassName%>Model, (reference: <%-reference.Referenced.ClassName%>Model) => reference.<%-reference.Class.ClassName%>, { eager: false, cascade: false })
+	<%-reference.Referenced.ClassName%>List?: I<%-reference.Referenced.ClassName%>Model[]
+<%
+			if (index !== Model.ManyToOneReversed.length - 1) {
+%>
+<%
+			}
+		})
+	}
+%>}

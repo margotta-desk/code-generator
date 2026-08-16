@@ -1,0 +1,8 @@
+<%
+if (Object.entries(UiImports).length !== 0) {
+	Object.entries(UiImports).forEach(([file, entities]) => {
+%>import { <%-entities.join(', ')%> } from '<%-file%>'
+<%
+	})
+}
+%>

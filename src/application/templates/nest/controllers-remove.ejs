@@ -1,0 +1,9 @@
+	@Delete('<%-Model.Key.Properties.map(m=>`:${m.PropertyName}`).join('/')%>')
+<%
+	Model.Key?.Properties.forEach((property) => {
+%>	@ApiParam({ name: '<%-property.PropertyName%>', type: String, format: '<%-property.UdtType%>' })
+<%
+	})
+%>	async Remove(@Param() params: <%=Model.ClassName%>Params): Promise<I<%=Model.ClassName%>Response> {
+		return await this.<%-Model.FieldName%>Service.Remove(params)
+	}

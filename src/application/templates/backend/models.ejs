@@ -1,0 +1,118 @@
+<%-Imports.trim()%>
+
+export interface I<%-Model.ClassName%>Key {
+<%
+	if (Model.Key) {
+		Model.Key.Properties.forEach((property, index) => {
+%>	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+<%
+		})
+	}
+%>}
+
+export interface I<%-Model.ClassName%>Value {<%
+	if (Model.Values.length !== 0) {
+%>
+	//	Properties
+<%
+		Model.Values.forEach((property, index) => {
+%>	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+<%
+		})
+	}
+
+	if (Model.OneToOne.length !== 0) {
+%>
+<%
+%>	//	One to One
+<%
+		Model.OneToOne.forEach((reference, index) => {
+%>	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Value
+<%
+		})
+	}
+
+	if (Model.OneToOneReversed.length !== 0) {
+%>
+<%
+%>	//	One to One (Reversed)
+<%
+		Model.OneToOneReversed.forEach((reference, index) => {
+%>	<%-reference.Referenced.ClassName%>?: I<%-reference.Referenced.ClassName%>Value
+<%
+		})
+	}
+
+	if (Model.ManyToOne.length !== 0) {
+%>
+<%
+%>	//	Many to One
+<%
+		Model.ManyToOne.forEach((reference, index) => {
+%>	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Value
+<%
+		})
+	}
+
+		if (Model.ManyToOneReversed.length !== 0) {
+%>
+<%
+%>	//	Many to One (Reversed)
+<%
+		Model.ManyToOneReversed.forEach((reference, index) => {
+%>	<%-reference.Referenced.ClassName%>List?: I<%-reference.Referenced.ClassName%>Value[]
+<%
+		})
+	}
+
+
+%>}
+
+export interface I<%-Model.ClassName%>Entity extends I<%-Model.ClassName%>Key, I<%-Model.ClassName%>Value { }
+
+export interface I<%-Model.ClassName%>Model extends I<%-Model.ClassName%>Entity {<%
+
+	if (Model.OneToOne.length !== 0) {
+%>
+	//	One to One
+<%
+		Model.OneToOne.forEach((reference, index) => {
+%>	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Model
+<%
+		})
+	}
+
+	if (Model.OneToOneReversed.length !== 0) {
+%>
+	//	One to One (Reversed)
+<%
+		Model.OneToOneReversed.forEach((reference, index) => {
+%>	<%-reference.Referenced.ClassName%>?: I<%-reference.Referenced.ClassName%>Model
+<%
+		})
+	}
+
+	if (Model.ManyToOne.length !== 0) {
+%>
+	//	Many to One
+<%
+		Model.ManyToOne.forEach((reference, index) => {
+%>	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Model
+<%
+		})
+	}
+
+
+	if (Model.ManyToOneReversed.length !== 0) {
+%>
+	//	Many to One (Reversed)
+<%
+		Model.ManyToOneReversed.forEach((reference, index) => {
+%>	<%-reference.Referenced.ClassName%>List?: I<%-reference.Referenced.ClassName%>Model[]
+<%
+		})
+	}
+
+%>}
+
+export interface I<%-Model.ClassName%>Query { }

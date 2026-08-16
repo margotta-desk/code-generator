@@ -1,0 +1,14 @@
+//	Escribe los marcadores de formato de módulo para cada salida de compilación.
+//	Permite que Node y los bundlers interpreten dist/cjs como CommonJS y dist/esm como ESM,
+//	sin necesidad de cambiar el "type" del package raíz.
+import { mkdirSync, writeFileSync } from 'node:fs'
+
+const targets = [
+	['dist/cjs', { type: 'commonjs' }],
+	['dist/esm', { type: 'module' }],
+]
+
+for (const [dir, content] of targets) {
+	mkdirSync(dir, { recursive: true })
+	writeFileSync(`${dir}/package.json`, `${JSON.stringify(content, null, '\t')}\n`)
+}
