@@ -284,10 +284,10 @@ export class NestModulesService implements INestModulesService {
 				const file = `../models`
 				if (!RepositoryImports[file]) RepositoryImports[file] = []
 
-				if (model.ReadOnly == false) {
-					const entity = `I${model.ClassName}Entity`
-					if (!RepositoryImports[file].includes(entity)) RepositoryImports[file].push(entity)
-				}
+				// if (model.ReadOnly == false) {
+				// 	const entity = `I${model.ClassName}Entity`
+				// 	if (!RepositoryImports[file].includes(entity)) RepositoryImports[file].push(entity)
+				// }
 
 				{
 					const entity = `I${model.ClassName}Key`
@@ -369,10 +369,10 @@ export class NestModulesService implements INestModulesService {
 				const file = `../models`
 				if (!RepositoryImports[file]) RepositoryImports[file] = []
 
-				if (model.ReadOnly == false) {
-					const entity = `I${model.ClassName}Entity`
-					if (!RepositoryImports[file].includes(entity)) RepositoryImports[file].push(entity)
-				}
+				// if (model.ReadOnly == false) {
+				// 	const entity = `I${model.ClassName}Entity`
+				// 	if (!RepositoryImports[file].includes(entity)) RepositoryImports[file].push(entity)
+				// }
 
 				{
 					const entity = `I${model.ClassName}Key`

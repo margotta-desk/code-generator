@@ -68,9 +68,7 @@ export interface I<%-Model.ClassName%>Value {<%
 
 %>}
 
-export interface I<%-Model.ClassName%>Entity extends I<%-Model.ClassName%>Key, I<%-Model.ClassName%>Value { }
-
-export interface I<%-Model.ClassName%>Model extends I<%-Model.ClassName%>Entity {<%
+export interface I<%-Model.ClassName%>Model extends I<%-Model.ClassName%>Key, I<%-Model.ClassName%>Value {<%
 
 	if (Model.OneToOne.length !== 0) {
 %>

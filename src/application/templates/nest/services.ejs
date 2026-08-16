@@ -14,24 +14,24 @@ export class <%-Model.ClassName%>Service {
 	}
 %>	constructor(private readonly repository: <%-Model.ClassName%>Repository) { }
 
-	public Get = async (key: I<%-Model.ClassName%>Key): Promise<I<%-Model.ClassName%>Model | null> => this.repository.Get(key)
+	public Get = async (key: I<%-Model.ClassName%>Key): Promise<I<%-Model.ClassName%>Model | null> => await this.repository.Get(key)
 
-	public Find = async (query: I<%-Model.ClassName%>Query): Promise<I<%-Model.ClassName%>Model[]> => this.repository.Find(query)
+	public Find = async (query: I<%-Model.ClassName%>Query): Promise<I<%-Model.ClassName%>Model[]> => await this.repository.Find(query)
 <%
 	if (!Model.ReadOnly) {
 		if (Model.Key.PropertiesGenerated.length !== 0) {
 %>
-	public Create = async (entity: Omit<I<%-Model.ClassName%>Entity, <%-Model.Key.PropertiesGenerated.map(m => `'${m.PropertyName}'`).join(', ')%>>): Promise<I<%-Model.ClassName%>Model> => this.repository.Create(entity)
+	public Create = async (value: I<%-Model.ClassName%>Value): Promise<I<%-Model.ClassName%>Model> => await this.repository.Create(value)
 <%
 		}
 		else {
 %>
-	public Create = async (entity: I<%-Model.ClassName%>Entity): Promise<I<%-Model.ClassName%>Model> => this.repository.Create(entity)
+	public Create = async (value: I<%-Model.ClassName%>Value): Promise<I<%-Model.ClassName%>Model> => await this.repository.Create(value)
 <%
 		}
 %>
-	public Update = async (key: I<%-Model.ClassName%>Key, value: Partial<I<%-Model.ClassName%>Value>): Promise<I<%-Model.ClassName%>Model> => this.repository.Update(key, value)
+	public Update = async (key: I<%-Model.ClassName%>Key, value: Partial<I<%-Model.ClassName%>Value>): Promise<I<%-Model.ClassName%>Model> => await this.repository.Update(key, value)
 
-	public Remove = async (key: I<%-Model.ClassName%>Key): Promise<I<%-Model.ClassName%>Model> => this.repository.Remove(key)
+	public Remove = async (key: I<%-Model.ClassName%>Key): Promise<I<%-Model.ClassName%>Model> => await this.repository.Remove(key)
 <%	}
 %>}

@@ -24,17 +24,9 @@ export class <%-Model.ClassName%>Repository {
 	public Exists = async (query: I<%-Model.ClassName%>Query): Promise<boolean> => await this.repository.exists({ where: await this.where(query) })
 <%
 	if (!Model.ReadOnly) {
-		if (Model.Key.PropertiesGenerated.length !== 0) {
 %>
-	public Create = async (entity: Omit<I<%-Model.ClassName%>Entity, <%-Model.Key.PropertiesGenerated.map(m => `'${m.PropertyName}'`).join(', ')%>>): Promise<I<%-Model.ClassName%>Model> => {
-<%
-		}
-		else {
-%>
-	public Create = async (entity: I<%-Model.ClassName%>Entity): Promise<I<%-Model.ClassName%>Model> => {
-<%
-		}
-%>		const item: I<%-Model.ClassName%>Model = await this.repository.save(entity)
+	public Create = async (value: I<%-Model.ClassName%>Value): Promise<I<%-Model.ClassName%>Model> => {
+		const item: I<%-Model.ClassName%>Model = await this.repository.save(value)
 
 		const created: I<%-Model.ClassName%>Model = await this.Get(item)
 
