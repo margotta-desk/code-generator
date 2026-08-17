@@ -37,7 +37,17 @@ export class NestService implements INestService {
 			"compilerOptions": {
 				"deleteOutDir": true,
 				"watchAssets": false,
-				"assets": [] as string[]
+				"assets": [] as string[],
+				"plugins": [
+					{
+						"name": "@nestjs/swagger",
+						"options": {
+							"classValidatorShim": true,
+							"introspectComments": true,
+							"dtoKeyOfComment": "description"
+						}
+					}
+				]
 			},
 			"generateOptions": {
 				"flat": true,
