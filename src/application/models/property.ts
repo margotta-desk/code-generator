@@ -37,6 +37,7 @@ export class PropertyModel {
 		| "int2vector"
 		| "int4"
 		| "int8"
+		| "jsonb"
 		| "interval"
 		| "name"
 		| "numeric"
@@ -55,6 +56,7 @@ export class PropertyModel {
 		| "timestamptz"
 		| "uuid"
 		| "varchar"
+		| "xml"
 		| "xid"
 	Updatable: boolean
 
@@ -64,26 +66,28 @@ export class PropertyModel {
 		return Convert.ToPascalCase(this.ColumnName)
 	}
 
-	public get PropertyType(): 'string' | 'number' | 'Date' | 'boolean' {
+	public get PropertyType(): 'string' | 'number' | 'Date' | 'boolean' | 'Record<string, unknown>' {
 		switch (this.UdtType) {
-			case 'varchar': return 'string'
-			case 'numeric': return 'number'
 			case 'bool': return 'boolean'
-			case 'date': return 'Date'
 			case 'char': return 'string'
+			case 'date': return 'Date'
 			case 'float4': return 'number'
 			case 'float8': return 'number'
 			case 'int2': return 'number'
 			case 'int4': return 'number'
 			case 'int8': return 'number'
+			case 'jsonb': return 'Record<string, unknown>'
 			case 'name': return 'string'
+			case 'numeric': return 'number'
 			case 'oid': return 'string'
 			case 'text': return 'string'
 			case 'time': return 'Date'
 			case 'timestamp': return 'Date'
 			case 'timestamptz': return 'Date'
 			case 'uuid': return 'string'
-			default: 'unknown'
+			case 'varchar': return 'string'
+			case 'xml': return 'string'
+			default: throw new Error(`No se ha especificado una conversion para el tipo de datos udt ${this.UdtType}`)
 		}
 	}
 }
