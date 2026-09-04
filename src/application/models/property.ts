@@ -12,7 +12,50 @@ export class PropertyModel {
 	NumericPrecision?: number
 	NumericScale?: number
 	Position: number
-	UdtType: "varchar" | "numeric" | "time" | "timestamp" | "char" | "int2" | "int4" | "int8" | "float4" | "float8" | "bool" | "text" | "bytea" | "timestamptz" | "date" | "interval" | "inet" | "uuid" | "_aclitem" | "_bool" | "_char" | "_float4" | "_float8" | "_int2" | "_int4" | "_name" | "_oid" | "_pg_statistic" | "_regtype" | "_text" | "anyarray" | "int2vector" | "name" | "oid" | "oidvector" | "pg_dependencies" | "pg_lsn" | "pg_mcv_list" | "pg_ndistinct" | "pg_node_tree" | "regproc" | "regtype" | "xid"
+	UdtType:
+		| "_aclitem"
+		| "_bool"
+		| "_char"
+		| "_float4"
+		| "_float8"
+		| "_int2"
+		| "_int4"
+		| "_name"
+		| "_oid"
+		| "_pg_statistic"
+		| "_regtype"
+		| "_text"
+		| "anyarray"
+		| "bool"
+		| "bytea"
+		| "char"
+		| "date"
+		| "float4"
+		| "float8"
+		| "inet"
+		| "int2"
+		| "int2vector"
+		| "int4"
+		| "int8"
+		| "interval"
+		| "name"
+		| "numeric"
+		| "oid"
+		| "oidvector"
+		| "pg_dependencies"
+		| "pg_lsn"
+		| "pg_mcv_list"
+		| "pg_ndistinct"
+		| "pg_node_tree"
+		| "regproc"
+		| "regtype"
+		| "text"
+		| "time"
+		| "timestamp"
+		| "timestamptz"
+		| "uuid"
+		| "varchar"
+		| "xid"
 	Updatable: boolean
 
 	Class: ClassModel
@@ -22,8 +65,7 @@ export class PropertyModel {
 	}
 
 	public get PropertyType(): 'string' | 'number' | 'Date' | 'boolean' {
-		switch (this.UdtType)
-		{
+		switch (this.UdtType) {
 			case 'varchar': return 'string'
 			case 'numeric': return 'number'
 			case 'bool': return 'boolean'
