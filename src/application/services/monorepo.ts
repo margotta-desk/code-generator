@@ -70,10 +70,10 @@ export class MonorepoService implements IMonorepoService {
 			"author": author,
 			"scripts": {
 				"build": "pnpm -r run build",
-				"dev": "pnpm -r --parallel run dev",
-				"typecheck": "pnpm -r run typecheck",
+				"clean": "pnpm -r run clean && rm -rf node_modules",
 				"test": "pnpm -r run test",
-				"clean": "pnpm -r run clean && rm -rf node_modules"
+				"typecheck": "pnpm -r run typecheck",
+				"watch": "pnpm -r --parallel run watch"
 			},
 			"keywords": [],
 			"license": "ISC",
