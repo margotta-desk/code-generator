@@ -226,29 +226,29 @@ export class BackendService implements IBackendService {
 					}
 				}
 
-				if (model.OneToOneReversed.length !== 0) {
-					{
-						const file = `typeorm`
+				// if (model.OneToOneReversed.length !== 0) {
+				// 	{
+				// 		const file = `typeorm`
 
-						{
-							const entity = `OneToOne`
-							if (!UiImports[file]) UiImports[file] = []
-							if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
-						}
-					}
+				// 		{
+				// 			const entity = `OneToOne`
+				// 			if (!UiImports[file]) UiImports[file] = []
+				// 			if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				// 		}
+				// 	}
 
-					for await (const oneToOne of model.OneToOneReversed.filter(f => f.Referenced !== model)) {
-						const file = (oneToOne.Referenced.Module == module)
-							? `./${oneToOne.Referenced.FileName}.infrastructure`
-							: `../../${oneToOne.Referenced.Module.FileName}`
+				// 	for await (const oneToOne of model.OneToOneReversed.filter(f => f.Referenced !== model)) {
+				// 		const file = (oneToOne.Referenced.Module == module)
+				// 			? `./${oneToOne.Referenced.FileName}.infrastructure`
+				// 			: `../../${oneToOne.Referenced.Module.FileName}`
 
-						{
-							const entity = `${oneToOne.Referenced.ClassName}Model`
-							if (!UiImports[file]) UiImports[file] = []
-							if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
-						}
-					}
-				}
+				// 		{
+				// 			const entity = `${oneToOne.Referenced.ClassName}Model`
+				// 			if (!UiImports[file]) UiImports[file] = []
+				// 			if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				// 		}
+				// 	}
+				// }
 			}
 
 			//([...model.ManyToOne, ...model.OneToOne]).filter(f => f.Class !== model).forEach((dependency: DependencyModel) => {
