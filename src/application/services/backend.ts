@@ -6,8 +6,8 @@ import { inject, injectable } from 'tsyringe'
 import { IProjectType } from '../../cli'
 import { TOKENS } from '../../tokens'
 import { IBackendService } from '../contracts'
-import { ClassModel, DependencyModel, ModuleModel } from '../models'
 import { Sort } from '../helpers'
+import { ClassModel, ModuleModel } from '../models'
 
 const dotenvTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/backend/dotenv.ejs'), 'utf8')
 const eventsTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/backend/events.ejs'), 'utf8')
@@ -20,7 +20,7 @@ export class BackendService implements IBackendService {
 
 	constructor(@inject(TOKENS.Project) private readonly project: IProjectType) { }
 
-	public async Generate(_projectId: string, modules: ModuleModel[]): Promise<void> {
+	public async Generate(projectId: string, modules: ModuleModel[]): Promise<void> {
 		const outputDir = path.join(import.meta.dirname, '../', '../', '../', 'output', this.project.path, 'apps', 'backend')
 		if (!fs.existsSync(outputDir)) await mkdir(outputDir, { recursive: true })
 
@@ -31,7 +31,7 @@ export class BackendService implements IBackendService {
 			if (!fs.existsSync(moduleDir)) await mkdir(moduleDir, { recursive: true })
 
 			await this.generateEvents(moduleDir, module)
-			await this.generateModels(moduleDir, module)
+			await this.generateModels(projectId, moduleDir, module)
 			await this.generateInfrastructures(moduleDir, module)
 		}
 	}
@@ -57,7 +57,7 @@ export class BackendService implements IBackendService {
 		fs.writeFileSync(path.join(eventsDir, `index.ts`), barril, 'utf8')
 	}
 
-	private async generateModels(outputDir: string, module: ModuleModel) {
+	private async generateModels(projectId: string, outputDir: string, module: ModuleModel) {
 		const modelsDir = path.join(outputDir, 'models')
 		if (!fs.existsSync(modelsDir)) await mkdir(modelsDir, { recursive: true })
 
@@ -65,13 +65,15 @@ export class BackendService implements IBackendService {
 
 		for await (const model of classes) {
 			let UiImports: Record<string, string[]> = {
+				"@nestjs/swagger": ["ApiProperty"],
+				"class-transform": ["Expose"],
 			};
 
 			([
 				// ...model.ManyToOneReversed.map(m => m.Referenced), 
 				// ...model.OneToOneReversed.map(m => m.Referenced),
-				...model.ManyToOne.map(m => m.Class), 
-				...model.OneToOne.map(m => m.Class), 
+				...model.ManyToOne.map(m => m.Class),
+				...model.OneToOne.map(m => m.Class),
 			]).filter(f => f != model).forEach((reference: ClassModel) => {
 				const file = (reference.Module == module)
 					? `./${reference.FileName}.model`
@@ -171,29 +173,29 @@ export class BackendService implements IBackendService {
 					}
 				}
 
-				if (model.ManyToOneReversed.length !== 0) {
-					{
-						const file = `typeorm`
+				// if (model.ManyToOneReversed.length !== 0) {
+				// 	{
+				// 		const file = `typeorm`
 
-						{
-							const entity = `OneToMany`
-							if (!UiImports[file]) UiImports[file] = []
-							if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
-						}
-					}
+				// 		{
+				// 			const entity = `OneToMany`
+				// 			if (!UiImports[file]) UiImports[file] = []
+				// 			if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				// 		}
+				// 	}
 
-					for await (const manyToOne of model.ManyToOneReversed) {
-						const file = (manyToOne.Referenced.Module == module)
-							? `./${manyToOne.Referenced.FileName}.infrastructure`
-							: `../../${manyToOne.Referenced.Module.FileName}`
+				// 	for await (const manyToOne of model.ManyToOneReversed) {
+				// 		const file = (manyToOne.Referenced.Module == module)
+				// 			? `./${manyToOne.Referenced.FileName}.infrastructure`
+				// 			: `../../${manyToOne.Referenced.Module.FileName}`
 
-						{
-							const entity = `${manyToOne.Referenced.ClassName}Model`
-							if (!UiImports[file]) UiImports[file] = []
-							if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
-						}
-					}
-				}
+				// 		{
+				// 			const entity = `${manyToOne.Referenced.ClassName}Model`
+				// 			if (!UiImports[file]) UiImports[file] = []
+				// 			if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				// 		}
+				// 	}
+				// }
 
 				if (model.OneToOne.length !== 0) {
 					{
