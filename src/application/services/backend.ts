@@ -67,7 +67,12 @@ export class BackendService implements IBackendService {
 			let UiImports: Record<string, string[]> = {
 			};
 
-			([...model.ManyToOne.map(m => m.Class), ...model.ManyToOneReversed.map(m => m.Referenced), ...model.OneToOne.map(m => m.Class), ...model.OneToOneReversed.map(m => m.Referenced)]).filter(f => f != model).forEach((reference: ClassModel) => {
+			([
+				// ...model.ManyToOneReversed.map(m => m.Referenced), 
+				// ...model.OneToOneReversed.map(m => m.Referenced),
+				...model.ManyToOne.map(m => m.Class), 
+				...model.OneToOne.map(m => m.Class), 
+			]).filter(f => f != model).forEach((reference: ClassModel) => {
 				const file = (reference.Module == module)
 					? `./${reference.FileName}.model`
 					: `../../${reference.Module.FileName}`
