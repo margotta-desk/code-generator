@@ -37,8 +37,8 @@ export class PropertyModel {
 		| "int2vector"
 		| "int4"
 		| "int8"
-		| "jsonb"
 		| "interval"
+		| "jsonb"
 		| "name"
 		| "numeric"
 		| "oid"
@@ -87,7 +87,7 @@ export class PropertyModel {
 			case 'uuid': return 'string'
 			case 'varchar': return 'string'
 			case 'xml': return 'string'
-			default: throw new Error(`No se ha especificado una conversion para el tipo de datos udt ${this.UdtType}`)
+			default: throw new Error(`No se ha especificado una conversión para el tipo de datos udt ${this.UdtType}`)
 		}
 	}
 }
