@@ -1,9 +1,9 @@
+<%-Imports.trim()%>
+
 export interface I<%-Model.ClassName%>Params {
 <%
-	if (Model.Key) {
-		Model.Key.Properties.forEach((property) => {
-%>	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+	Model.Key.Properties.forEach((property, index) => {
+%>	<%-property.PropertyName%>: <%-property.PropertyType%>
 <%
-		})
-	}
+	})
 %>}

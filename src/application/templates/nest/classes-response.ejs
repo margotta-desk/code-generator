@@ -1,3 +1,5 @@
+<%-Imports.trim()%>
+
 export class <%-Model.ClassName%>Response implements I<%-Model.ClassName%>Response {<%
 	if (Model.OneToOne.length !== 0)
 	{
@@ -5,7 +7,8 @@ export class <%-Model.ClassName%>Response implements I<%-Model.ClassName%>Respon
 	//	One to One
 <%
 		Model.OneToOne.forEach((reference, index) => {
-%>	@Expose()
+%>	@ApiPropertyOptional({ name: '<%-reference.Class.ClassName%>' })
+	@Expose({ name: '<%-reference.Class.ClassName%>', toClassOnly: true })
 	@Type(() => <%-reference.Class.ClassName%>Response)
 	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Response
 <%
@@ -24,7 +27,8 @@ export class <%-Model.ClassName%>Response implements I<%-Model.ClassName%>Respon
 	//	Many to One
 <%
 		Model.ManyToOne.forEach((reference, index) => {
-%>	@Expose()
+%>	@ApiPropertyOptional({ name: '<%-reference.Class.ClassName%>' })
+	@Expose({ name: '<%-reference.Class.ClassName%>', toClassOnly: true })
 	@Type(() => <%-reference.Class.ClassName%>Response)
 	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Response
 <%
@@ -42,7 +46,11 @@ export class <%-Model.ClassName%>Response implements I<%-Model.ClassName%>Respon
 	//	Properties
 <%
 		Model.Properties.forEach((property, index) => {
-%>	@Expose()
+%>	@ApiProperty<%property.Nullable ? 'Optional' : '' %>({ name: '<%-property.PropertyName%>'<%
+			if (property.PropertyType === 'Date' && property.UdtType === 'date') { %>, type: String, format: 'date'<% }
+			if (property.PropertyType === 'Date' && property.UdtType === 'timestamp') { %>, type: String, format: 'date-time'<% }
+%> })
+	@Expose({ name: '<%-property.PropertyName%>' })
 	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
 <%
 			if (index + 1 != Model.Properties.length)

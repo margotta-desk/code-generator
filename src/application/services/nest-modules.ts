@@ -7,10 +7,9 @@ import { IProjectType } from '../../cli'
 import { TOKENS } from '../../tokens'
 import { INestModulesService } from '../contracts'
 import { Sort } from '../helpers'
-import { ClassModel, DependencyModel, ModuleModel } from '../models'
+import { ClassModel, ModuleModel } from '../models'
 
 const moduleTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/nest/modules.ejs'), 'utf8')
-const classesTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/nest/classes.ejs'), 'utf8')
 const classesBodyTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/nest/classes-body.ejs'), 'utf8')
 const classesParamsTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/nest/classes-params.ejs'), 'utf8')
 const classesQueryTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/nest/classes-query.ejs'), 'utf8')
@@ -33,7 +32,7 @@ export class NestModulesService implements INestModulesService {
 
 	constructor(@inject(TOKENS.Project) private readonly project: IProjectType) { }
 
-	public async Generate(_projectId: string, modules: ModuleModel[]): Promise<void> {
+	public async Generate(projectId: string, modules: ModuleModel[]): Promise<void> {
 		const outputDir = path.join(import.meta.dirname, '../', '../', '../', 'output', this.project.path, 'apps', 'backend', 'src', 'modules')
 		if (!fs.existsSync(outputDir)) await mkdir(outputDir, { recursive: true })
 
@@ -42,10 +41,10 @@ export class NestModulesService implements INestModulesService {
 			if (!fs.existsSync(outputDir)) await mkdir(moduleDir, { recursive: true })
 
 			await this.generateModule(moduleDir, module)
-			await this.generateClasses(moduleDir, module)
-			await this.generateRepositories(moduleDir, module)
-			await this.generateServices(moduleDir, module)
-			await this.generateControllers(moduleDir, module)
+			await this.generateClasses(projectId, moduleDir, module)
+			await this.generateRepositories(projectId, moduleDir, module)
+			await this.generateServices(projectId, moduleDir, module)
+			await this.generateControllers(projectId, moduleDir, module)
 		}
 
 		const barril: string = 'export { }'
@@ -85,162 +84,364 @@ export class NestModulesService implements INestModulesService {
 		}
 	}
 
-	private async generateClasses(moduleDir: string, module: ModuleModel) {
+	private async generateClasses(projectId: string, moduleDir: string, module: ModuleModel) {
 		const classesDir = path.join(moduleDir, 'classes')
 		if (!fs.existsSync(classesDir)) await mkdir(classesDir, { recursive: true })
 
-		for await (const classModel of module.Classes) await this.generateClass(classesDir, module, classModel)
+		for await (const classModel of module.Classes.filter(f => f.Type == 'entity')) await this.generateClassBody(projectId, classesDir, module, classModel)
+		for await (const classModel of module.Classes.filter(f => f.Key)) await this.generateClassParams(projectId, classesDir, module, classModel)
+		for await (const classModel of module.Classes) await this.generateClassQuery(projectId, classesDir, module, classModel)
+		for await (const classModel of module.Classes) await this.generateClassResponse(projectId, classesDir, module, classModel)
 
-		const barril: string = module.Classes.length == 0 ? 'export { }' : module.Classes.map(m => `export * from './${m.FileName}'`).join('\n')
+		const files: string[] = [
+			...module.Classes.filter(f => f.Type == 'entity').map(m => `${m.FileName}.body`),
+			...module.Classes.filter(f => f.Key).map(m => `${m.FileName}.params`),
+			...module.Classes.map(m => `${m.FileName}.query`),
+			...module.Classes.map(m => `${m.FileName}.response`),
+		].sort((a, b) => a > b ? 1 : -1)
+
+		const barril: string = files.length == 0 ? 'export { }' : files.map(m => `export * from './${m}'`).join('\n')
 		fs.writeFileSync(path.join(classesDir, `index.ts`), barril, 'utf8')
 	}
 
-	private async generateClass(classesDir: string, module: ModuleModel, model: ClassModel) {
-		let ClassesImports: Record<string, string[]> = {}
+	private async generateClassBody(projectId: string, classesDir: string, module: ModuleModel, model: ClassModel) {
+		let UiImports: Record<string, string[]> = {}
 
 		{	//	Current model
-			const file = `@packages/${model.Module.FileName}/ui`
-			if (!ClassesImports[file]) ClassesImports[file] = []
+			const file = `@${projectId}/${model.Module.FileName}/ui`
+			if (!UiImports[file]) UiImports[file] = []
 
-			if (!model.ReadOnly && model.Type == 'entity') {
-				const entity = `I${model.ClassName}Body`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
-			}
-
-			{
-				const entity = `I${model.ClassName}Params`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
-			}
-
-			{
-				const entity = `I${model.ClassName}Query`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
-			}
-
-			{
-				const entity = `I${model.ClassName}Response`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
-			}
-		}
-
-		{
-			const file = `class-transformer`
-			if (!ClassesImports[file]) ClassesImports[file] = []
-
-			{
-				const entity = `Expose`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
-			}
-
-			{
-				const entity = `Transform`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
-			}
-
-			if (model.OneToOne.length != 0 || model.ManyToOne.length != 0) {// || model.OneToOneReversed.length != 0 || model.ManyToOneReversed.length != 0
-				const entity = `Transform`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
-			}
-
-			if (model.OneToOne.length != 0 || model.ManyToOne.length != 0) {// || model.OneToOneReversed.length != 0 || model.ManyToOneReversed.length != 0
-				const entity = `Type`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
-			}
+			const entity = `I${model.ClassName}Body`
+			if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 		}
 
 		{
 			const file = `@nestjs/swagger`
-			if (!ClassesImports[file]) ClassesImports[file] = []
+			if (!UiImports[file]) UiImports[file] = []
 
 			if (model.Properties.some(s => s.Nullable)) {
 				const entity = `ApiPropertyOptional`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 			}
 
 			if (model.Properties.some(s => !s.Nullable)) {
 				const entity = `ApiProperty`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 			}
 		}
 
 		{
 			const file = `class-validator`
-			if (!ClassesImports[file]) ClassesImports[file] = []
+			if (!UiImports[file]) UiImports[file] = []
 
 			if (model.Properties.some(s => s.Nullable)) {
-				const entity = `IsEmpty`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+				const entity = `IsOptional`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 			}
 
 			if (model.Properties.some(s => !s.Nullable)) {
 				const entity = `IsNotEmpty`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 			}
 
 			if (model.Properties.some(s => s.PropertyType === 'number')) {
 				const entity = `IsNumber`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 			}
 
-			if (model.Properties.some(s => s.PropertyType === 'string')) {
-				if (model.Properties.some(s => s.UdtType === 'uuid')) {
+			if (model.Values.some(s => s.PropertyType === 'string')) {
+				if (model.Values.some(s => s.UdtType === 'uuid')) {
 					const entity = `IsUUID`
-					if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 				}
-				if (model.Properties.some(s => s.UdtType === 'varchar')) {
+				if (model.Values.some(s => s.UdtType === 'varchar')) {
 					const entity = `IsString`
-					if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 				}
 			}
 
 			if (model.Properties.some(s => s.PropertyType === 'boolean')) {
 				const entity = `IsBoolean`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 			}
 
 			if (model.Properties.some(s => s.PropertyType === 'Date')) {
 				const entity = `IsDate`
-				if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 			}
 		}
 
 
-		([...model.ManyToOne.map(obj => obj.Class), ...model.OneToOne.map(obj => obj.Class)]).filter(f => f !== model).forEach((dependency: ClassModel) => {
+		([
+			// ...model.ManyToOne.map(obj => obj.Class),
+			// ...model.OneToOne.map(obj => obj.Class),
+		]).filter(f => f !== model).forEach((dependency: ClassModel) => {
 			{
 				const file = `@packages/${dependency.Module.FileName}/ui`
-				if (!ClassesImports[file]) ClassesImports[file] = []
+				if (!UiImports[file]) UiImports[file] = []
 
 				{	//	Response
 					const entity = `I${dependency.ClassName}Response`
-					if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 				}
 			}
 
 			{
 				const file = dependency.Module == model.Module ? `./${dependency.FileName}` : `../../${dependency.Module.FileName}`
-				if (!ClassesImports[file]) ClassesImports[file] = []
+				if (!UiImports[file]) UiImports[file] = []
 
 				{	//	Response
 					const entity = `${dependency.ClassName}Response`
-					if (!ClassesImports[file].includes(entity)) ClassesImports[file].push(entity)
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
 				}
 			}
 		})
 
-		ClassesImports = Sort.RecordArrayByKey<string>(ClassesImports)
+		UiImports = Sort.RecordArrayByKey<string>(UiImports)
 
-		const Imports = ejs.render(importsTemplate, { UiImports: ClassesImports })
-		const Body: string | null = !model.ReadOnly && model.Type == 'entity' ? ejs.render(classesBodyTemplate, { Model: model }).trim() : null
-		const Params: string = ejs.render(classesParamsTemplate, { Model: model }).trim()
-		const Query: string = ejs.render(classesQueryTemplate, { Model: model }).trim()
-		const Response: string = ejs.render(classesResponseTemplate, { Model: model }).trim()
-		const Rendered: string = ejs.render(classesTemplate, { Model: model, Imports, Body, Params, Query, Response }).trim()
+		const Imports = ejs.render(importsTemplate, { UiImports })
+		const Body: string | null = ejs.render(classesBodyTemplate, { Model: model, Imports }).trim()
 
-		// const rendered: string = ejs.render(classesTemplate, { Imports, Model: model }).trim()
-		fs.writeFileSync(path.join(classesDir, `${model.FileName}.ts`), Rendered, 'utf8')
+		fs.writeFileSync(path.join(classesDir, `${model.FileName}.body.ts`), Body, 'utf8')
 	}
 
-	private async generateRepositories(outputDir: string, module: ModuleModel) {
+	private async generateClassParams(projectId: string, classesDir: string, module: ModuleModel, model: ClassModel) {
+		let UiImports: Record<string, string[]> = {}
+
+		{	//	Current model
+			const file = `@${projectId}/${model.Module.FileName}/ui`
+			if (!UiImports[file]) UiImports[file] = []
+
+			const entity = `I${model.ClassName}Params`
+			if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+		}
+
+		{
+			const file = `class-transformer`
+			if (!UiImports[file]) UiImports[file] = []
+
+			{
+				const entity = `Expose`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+		}
+
+		{
+			const file = `@nestjs/swagger`
+			if (!UiImports[file]) UiImports[file] = []
+
+			if (model.Properties.some(s => s.Nullable)) {
+				const entity = `ApiPropertyOptional`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+
+			if (model.Properties.some(s => !s.Nullable)) {
+				const entity = `ApiProperty`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+		}
+
+		{
+			const file = `class-validator`
+			if (!UiImports[file]) UiImports[file] = []
+
+			if (model.Key.Properties.some(s => s.Nullable)) {
+				const entity = `IsEmpty`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+
+			if (model.Key.Properties.some(s => !s.Nullable)) {
+				const entity = `IsNotEmpty`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+
+			if (model.Key.Properties.some(s => s.PropertyType === 'number')) {
+				const entity = `IsNumber`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+
+			if (model.Key.Properties.some(s => s.PropertyType === 'string')) {
+				if (model.Key.Properties.some(s => s.UdtType === 'uuid')) {
+					const entity = `IsUUID`
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				}
+				if (model.Key.Properties.some(s => s.UdtType === 'varchar')) {
+					const entity = `IsString`
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				}
+			}
+
+			if (model.Key.Properties.some(s => s.PropertyType === 'boolean')) {
+				const entity = `IsBoolean`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+
+			if (model.Key.Properties.some(s => s.PropertyType === 'Date')) {
+				const entity = `IsDate`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+		}
+
+
+		([
+			// ...model.ManyToOne.map(obj => obj.Class),
+			// ...model.OneToOne.map(obj => obj.Class),
+		]).filter(f => f !== model).forEach((dependency: ClassModel) => {
+			{
+				const file = `@packages/${dependency.Module.FileName}/ui`
+				if (!UiImports[file]) UiImports[file] = []
+
+				{	//	Response
+					const entity = `I${dependency.ClassName}Response`
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				}
+			}
+
+			{
+				const file = dependency.Module == model.Module ? `./${dependency.FileName}` : `../../${dependency.Module.FileName}`
+				if (!UiImports[file]) UiImports[file] = []
+
+				{	//	Response
+					const entity = `${dependency.ClassName}Response`
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				}
+			}
+		})
+
+		UiImports = Sort.RecordArrayByKey<string>(UiImports)
+
+		const Imports = ejs.render(importsTemplate, { UiImports })
+		const Params: string = ejs.render(classesParamsTemplate, { Model: model, Imports }).trim()
+
+		fs.writeFileSync(path.join(classesDir, `${model.FileName}.params.ts`), Params, 'utf8')
+	}
+
+	private async generateClassQuery(projectId: string, classesDir: string, module: ModuleModel, model: ClassModel) {
+		let UiImports: Record<string, string[]> = {}
+
+		{	//	Current model
+			const file = `@${projectId}/${model.Module.FileName}/ui`
+			if (!UiImports[file]) UiImports[file] = []
+
+			const entity = `I${model.ClassName}Query`
+			if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+		}
+
+		([
+			//...model.ManyToOne.map(obj => obj.Class),
+			//...model.OneToOne.map(obj => obj.Class),
+		]).filter(f => f !== model).forEach((dependency: ClassModel) => {
+			{
+				const file = `@packages/${dependency.Module.FileName}/ui`
+				if (!UiImports[file]) UiImports[file] = []
+
+				{	//	Response
+					const entity = `I${dependency.ClassName}Response`
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				}
+			}
+
+			{
+				const file = dependency.Module == model.Module ? `./${dependency.FileName}` : `../../${dependency.Module.FileName}`
+				if (!UiImports[file]) UiImports[file] = []
+
+				{	//	Response
+					const entity = `${dependency.ClassName}Response`
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				}
+			}
+		})
+
+		UiImports = Sort.RecordArrayByKey<string>(UiImports)
+
+		const Imports = ejs.render(importsTemplate, { UiImports })
+		const Query: string = ejs.render(classesQueryTemplate, { Model: model, Imports }).trim()
+
+		fs.writeFileSync(path.join(classesDir, `${model.FileName}.query.ts`), Query, 'utf8')
+	}
+
+	private async generateClassResponse(projectId: string, classesDir: string, module: ModuleModel, model: ClassModel) {
+		let UiImports: Record<string, string[]> = {}
+
+		{	//	Current model
+			const file = `@${projectId}/${model.Module.FileName}/ui`
+			if (!UiImports[file]) UiImports[file] = []
+
+			const entity = `I${model.ClassName}Response`
+			if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+		}
+
+		{
+			const file = `class-transformer`
+			if (!UiImports[file]) UiImports[file] = []
+
+			{
+				const entity = `Expose`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+
+
+			if (model.OneToOne.length != 0 || model.ManyToOne.length != 0) {// || model.OneToOneReversed.length != 0 || model.ManyToOneReversed.length != 0
+				const entity = `Type`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+		}
+
+		{
+			const file = `@nestjs/swagger`
+			if (!UiImports[file]) UiImports[file] = []
+
+
+			if (model.OneToOne.length != 0 || model.ManyToOne.length != 0) {// || model.OneToOneReversed.length != 0 || model.ManyToOneReversed.length != 0
+				const entity = `ApiPropertyOptional`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+
+			if (model.Properties.some(s => s.Nullable)) {
+				const entity = `ApiPropertyOptional`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+
+			if (model.Properties.some(s => !s.Nullable)) {
+				const entity = `ApiProperty`
+				if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+			}
+		}
+
+		([
+			...model.ManyToOne.map(obj => obj.Class),
+			...model.OneToOne.map(obj => obj.Class),
+		]).filter(f => f !== model).forEach((dependency: ClassModel) => {
+			{
+				const file = `@packages/${dependency.Module.FileName}/ui`
+				if (!UiImports[file]) UiImports[file] = []
+
+				{	//	Response
+					const entity = `I${dependency.ClassName}Response`
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				}
+			}
+
+			{
+				const file = dependency.Module == model.Module ? `./${dependency.FileName}` : `../../${dependency.Module.FileName}`
+				if (!UiImports[file]) UiImports[file] = []
+
+				{	//	Response
+					const entity = `${dependency.ClassName}Response`
+					if (!UiImports[file].includes(entity)) UiImports[file].push(entity)
+				}
+			}
+		})
+
+		UiImports = Sort.RecordArrayByKey<string>(UiImports)
+
+		const Imports = ejs.render(importsTemplate, { UiImports })
+		const Response: string = ejs.render(classesResponseTemplate, { Model: model, Imports }).trim()
+
+		fs.writeFileSync(path.join(classesDir, `${model.FileName}.response.ts`), Response, 'utf8')
+	}
+
+	private async generateRepositories(projectId: string, outputDir: string, module: ModuleModel) {
 		const repositoriesDir = path.join(outputDir, 'repositories')
 		if (!fs.existsSync(repositoriesDir)) await mkdir(repositoriesDir, { recursive: true })
 
@@ -325,7 +526,7 @@ export class NestModulesService implements INestModulesService {
 		fs.writeFileSync(path.join(repositoriesDir, `index.ts`), barril, 'utf8')
 	}
 
-	private async generateServices(outputDir: string, module: ModuleModel) {
+	private async generateServices(projectId: string, outputDir: string, module: ModuleModel) {
 		const servicesDir = path.join(outputDir, 'services')
 		if (!fs.existsSync(servicesDir)) await mkdir(servicesDir, { recursive: true })
 
@@ -410,7 +611,7 @@ export class NestModulesService implements INestModulesService {
 		fs.writeFileSync(path.join(servicesDir, `index.ts`), barril, 'utf8')
 	}
 
-	private async generateControllers(moduleDir: string, module: ModuleModel) {
+	private async generateControllers(projectId: string, moduleDir: string, module: ModuleModel) {
 		const controllersDir = path.join(moduleDir, 'controllers')
 		if (!fs.existsSync(controllersDir)) await mkdir(controllersDir, { recursive: true })
 

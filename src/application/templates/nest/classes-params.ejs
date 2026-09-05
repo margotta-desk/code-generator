@@ -1,8 +1,11 @@
+<%-Imports.trim()%>
+
 export class <%-Model.ClassName%>Params implements I<%-Model.ClassName%>Params {
 <%
-	if (Model.Key) 
-	{
-		Model.Key.Properties.forEach((property, index) => {
+	Model.Key.Properties.forEach((property, index) => {
+%>	@ApiProperty({ name: '<%-property.PropertyName%>' })
+	@Expose({ name: '<%-property.PropertyName%>' })
+<%
 %>	@IsNotEmpty()
 <%
 			if (property.PropertyType === 'number')
@@ -44,6 +47,5 @@ export class <%-Model.ClassName%>Params implements I<%-Model.ClassName%>Params {
 <%
 			}
 
-		})
-	}
+	})
 %>}
