@@ -252,10 +252,10 @@ export class BackendService implements IBackendService {
 			}
 
 			([
-				// ...model.ManyToOneReversed.map(m => m.Referenced), 
+				// ...model.ManyToOneReversed.map(m => m.Referenced),
 				// ...model.OneToOneReversed.map(m => m.Referenced),
-				...model.ManyToOne.map(m => m.Class), 
-				...model.OneToOne.map(m => m.Class), 
+				...model.ManyToOne.map(m => m.Class),
+				...model.OneToOne.map(m => m.Class),
 			]).filter(f => f !== model).forEach((reference: ClassModel) => {
 				const file = (reference.Module == module) ? `../models` : `../../${reference.Module.FileName}`
 				const entity = `I${reference.ClassName}Model`
