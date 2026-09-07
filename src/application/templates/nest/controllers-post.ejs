@@ -4,7 +4,12 @@ if (Model.Key.PropertiesNonGenerated.length === 0)
 %>
 	@Post()
 	async Create(@Body() body: <%-Model.ClassName%>Body): Promise<I<%-Model.ClassName%>Response> {
-		return await this.<%-Model.FieldName%>Service.Create(body)
+		return plainToInstance(<%-Model.ClassName%>Response,
+			await this.<%-Model.FieldName%>Service.Create(
+				plainToInstance(<%-Model.ClassName%>Value, body, { excludeExtraneousValues: true, enableImplicitConversion: true })
+			),
+			{ excludeExtraneousValues: true, enableImplicitConversion: true }
+		)
 	}
 <%
 }
@@ -13,7 +18,12 @@ else if (Model.Type === 'many-to-many')
 %>
 	@Post('<%-Model.Key.PropertiesNonGenerated.map(m=>`:${m.PropertyName}`).join('/')%>')
 	async Create(<%-Model.Key.PropertiesNonGenerated.map(m=>`@Param('${m.PropertyName}') ${m.PropertyName}: ${m.PropertyType}`).join(', ')%>): Promise<I<%=Model.ClassName%>Response> {
-		return await this.<%-Model.FieldName%>Service.Create({ <%-Model.Key.PropertiesNonGenerated.map(m => m.PropertyName ).join(', ')%> })
+		return plainToInstance(<%-Model.ClassName%>Response,
+			await this.<%-Model.FieldName%>Service.Create(
+				plainToInstance(<%-Model.ClassName%>Value, body, { excludeExtraneousValues: true, enableImplicitConversion: true })
+			),
+			{ excludeExtraneousValues: true, enableImplicitConversion: true }
+		)
 	}
 <%
 }
@@ -22,7 +32,12 @@ else
 %>
 	@Post('<%-Model.Key.PropertiesNonGenerated.map(m=>`:${m.PropertyName}`).join('/')%>')
 	async Create(<%-Model.Key.PropertiesNonGenerated.map(m=>`@Param('${m.PropertyName}') ${m.PropertyName}: ${m.PropertyType}`).join(', ')%>, @Body() body: <%=Model.ClassName%>Body): Promise<I<%=Model.ClassName%>Response> {
-		return await this.<%-Model.FieldName%>Service.Create({ <%-Model.Key.PropertiesNonGenerated.map(m => m.PropertyName ).join(', ')%>, ...body })
+		return plainToInstance(<%-Model.ClassName%>Response,
+			await this.<%-Model.FieldName%>Service.Create(
+				plainToInstance(<%-Model.ClassName%>Value, body, { excludeExtraneousValues: true, enableImplicitConversion: true })
+			),
+			{ excludeExtraneousValues: true, enableImplicitConversion: true }
+		)
 	}
 <%
 }

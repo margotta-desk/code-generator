@@ -1,4 +1,7 @@
 	@Get()
 	async Find(@Query() query: <%-Model.ClassName%>Query): Promise<I<%-Model.ClassName%>Response[]> {
-		return await this.<%-Model.FieldName%>Service.Find(query)
+		return plainToInstance(<%-Model.ClassName%>Response,
+			await this.<%-Model.FieldName%>Service.Find(plainToInstance(<%-Model.ClassName%>Query, query, { excludeExtraneousValues: true, enableImplicitConversion: true })),
+			{ excludeExtraneousValues: true, enableImplicitConversion: true }
+		)
 	}

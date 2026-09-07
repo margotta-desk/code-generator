@@ -1,0 +1,41 @@
+<%-Imports.trim()%>
+
+export interface I<%-Model.ClassName%>Model extends I<%-Model.ClassName%>Key, I<%-Model.ClassName%>Value {<%
+
+	if (Model.OneToOne.length !== 0 || Model.OneToOneReversed.length !== 0) {
+%>
+	//	One to One
+<%
+		Model.OneToOne.forEach((reference, index) => {
+%>	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Model
+<%
+		})
+
+		Model.OneToOneReversed.forEach((reference, index) => {
+%>	// <%-reference.Referenced.ClassName%>?: I<%-reference.Referenced.ClassName%>Model
+<%
+		})
+	}
+
+	if (Model.ManyToOne.length !== 0) {
+%>
+	//	Many to One
+<%
+		Model.ManyToOne.forEach((reference, index) => {
+%>	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Model
+<%
+		})
+	}
+
+
+	if (Model.ManyToOneReversed.length !== 0) {
+%>
+	//	One to Many
+<%
+		Model.ManyToOneReversed.forEach((reference, index) => {
+%>	// <%-reference.Referenced.ClassName%>List?: I<%-reference.Referenced.ClassName%>Model[]
+<%
+		})
+	}
+
+%>}

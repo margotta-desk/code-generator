@@ -1,4 +1,5 @@
 node_modules/
 output/
+.ignore/
 .env
 projects/projects.json

@@ -1,0 +1,97 @@
+<%-Imports.trim()%>
+
+export interface I<%-Model.ClassName%>Value {<%
+	if (Model.Values.length !== 0) {
+%>
+	// Properties
+<%
+		Model.Values.forEach((property, index) => {
+%>	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+<%
+		})
+	}
+
+	if (Model.OneToOne.length !== 0 || Model.OneToOneReversed.length !== 0 || Model.ManyToOne.length !== 0 || Model.ManyToOneReversed.length !== 0) {
+%>
+<%
+%>	// References
+<%
+		Model.OneToOne.forEach((reference, index) => {
+%>	// <%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Value
+<%
+		})
+
+		Model.OneToOneReversed.forEach((reference, index) => {
+%>	// <%-reference.Referenced.ClassName%>?: I<%-reference.Referenced.ClassName%>Value
+<%
+		})
+
+		Model.ManyToOne.forEach((reference, index) => {
+%>	// <%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Value
+<%
+		})
+
+		Model.ManyToOneReversed.forEach((reference, index) => {
+%>	// <%-reference.Referenced.ClassName%>List?: I<%-reference.Referenced.ClassName%>Value[]
+<%
+		})
+	}
+%>}
+
+export class <%-Model.ClassName%>Value implements I<%-Model.ClassName%>Value {<%
+	if (Model.Values.length !== 0) {
+%>
+	// Properties
+<%
+		Model.Values.forEach((property, index) => {
+%>	@ApiProperty<%- property.Nullable ? 'Optional' : '' %>({ name: '<%-property.PropertyName%>' })
+	@Expose({ name: '<%-property.PropertyName%>' })
+	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+<%
+			if (index + 1 != Model.Values.length)
+			{
+%>
+<%
+			}
+		})
+	}
+
+	if (Model.OneToOne.length !== 0 || Model.OneToOneReversed.length !== 0 || Model.ManyToOne.length !== 0 || Model.ManyToOneReversed.length !== 0) {
+
+		Model.OneToOne.forEach((reference, index) => {
+%>
+	// @ApiPropertyOptional({ type: <%-reference.DependencyName%> })
+	// @Expose({ name: '<%-reference.DependencyName%>' })
+	// @Type(() => <%-reference.Class.ClassName%>Value)
+	// <%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Value
+<%
+		})
+
+		Model.OneToOneReversed.forEach((reference, index) => {
+%>
+	// @ApiPropertyOptional({ type: <%-reference.Referenced.ClassName%>Value })
+	// @Expose({ name: '<%-reference.Referenced.ClassName%>' })
+	// @Type(() => <%-reference.Referenced.ClassName%>Value)
+	// <%-reference.Referenced.ClassName%>?: I<%-reference.Referenced.ClassName%>Value
+<%
+		})
+
+		Model.ManyToOne.forEach((reference, index) => {
+%>
+	// @ApiPropertyOptional({ type: <%-reference.Referenced.ClassName%>Value })
+	// @Expose({ name: '<%-reference.Referenced.ClassName%>' })
+	// @Type(() => <%-reference.Class.ClassName%>Value)
+	// <%-reference.Referenced.ClassName%>List?: I<%-reference.Referenced.ClassName%>Value[]
+<%
+		})
+
+		Model.ManyToOneReversed.forEach((reference, index) => {
+%>
+	// @ApiPropertyOptional({ type: <%-reference.Referenced.ClassName%>Value, isArray: true })
+	// @Expose({ name: '<%-reference.Referenced.ClassName%>List' })
+	// @Type(() => <%-reference.Referenced.ClassName%>Value)
+	// <%-reference.Referenced.ClassName%>List?: I<%-reference.Referenced.ClassName%>Value[]
+<%
+		})
+	}
+%>}

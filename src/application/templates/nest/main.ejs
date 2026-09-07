@@ -4,7 +4,6 @@ import { IoAdapter } from '@nestjs/platform-socket.io'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { Settings } from 'luxon'
 import { AppModule } from './app.module'
-import { SerializeInterceptor } from './modules/shared'
 
 async function bootstrap() {
 	// Set the default locale globally
@@ -27,13 +26,6 @@ async function bootstrap() {
 			whitelist: true 			// Ignora propiedades no definidas en el Dto
 		})
 	)
-
-	app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector), {
-		excludeExtraneousValues: true,
-		enableImplicitConversion: true,
-	}))
-
-	app.useGlobalInterceptors(new SerializeInterceptor(app.get(Reflector)))
 
 	const config = new DocumentBuilder()
 		.setTitle('<%-Project.name%>')

@@ -1,10 +1,9 @@
-import { BackendService } from './../../application/services/backend'
 import fs from 'fs'
 import { mkdir, rm } from 'node:fs/promises'
 import path from 'path'
 import { container } from 'tsyringe'
 import { CommandModule } from 'yargs'
-import { IBackendService, IMetadataLoaderService, IMonorepoService, INestService, IPackagesService, ModuleModel } from '../../application'
+import { IMetadataLoaderService, IMonorepoService, INestService, IPackagesService, ModuleModel } from '../../application'
 import { destroyContainer, registerContainer } from '../../container'
 import { TOKENS } from '../../tokens'
 import { showSpinner } from '../render'
@@ -100,10 +99,7 @@ export const generateCommand: CommandModule<{}, ArgsOptions> = {
 			if (project.layers.backend == 'nest') {
 				spinner.start('Generando backend NestJS...')
 
-				const backendService = container.resolve<IBackendService>(TOKENS.BackendService)
 				const nestService = container.resolve<INestService>(TOKENS.NestService)
-
-				await backendService.Generate(args.project, modules)
 				await nestService.Generate(args.project, modules)
 
 				spinner.succeed('Backend NestJS generado exitósamente')

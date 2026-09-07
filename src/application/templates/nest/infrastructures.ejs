@@ -4,7 +4,7 @@
 export class <%-Model.ClassName%>Model implements I<%-Model.ClassName%>Model {<%
 	if (Model.Properties.length !== 0) {
 %>
-	//	Properties
+	// Properties
 <%
 		Model.Properties.forEach((property, index) => {
 			if (Model.Key?.Properties.includes(property)) {
@@ -34,7 +34,7 @@ export class <%-Model.ClassName%>Model implements I<%-Model.ClassName%>Model {<%
 
 	if (Model.OneToOne.length !== 0) {
 %>
-	//	One to One
+	// One to One
 <%
 		Model.OneToOne.forEach((reference, index) => {
 %>	@OneToOne(() => <%-reference.Class.ClassName%>Model, { eager: false, cascade: false })
@@ -50,11 +50,11 @@ export class <%-Model.ClassName%>Model implements I<%-Model.ClassName%>Model {<%
 
 	if (Model.OneToOneReversed.length !== 0) {
 %>
-	//	One to One (Reversed)
+	// One to One (Reversed)
 <%
 		Model.OneToOneReversed.forEach((reference, index) => {
-%>	@OneToOne(() => <%-reference.Referenced.ClassName%>Model, (reference: <%-reference.Referenced.ClassName%>Model) => reference.<%-reference.Class.ClassName%>, { eager: false, cascade: false })
-	<%-reference.Referenced.ClassName%>?: I<%-reference.Referenced.ClassName%>Model
+%>	// @OneToOne(() => <%-reference.Referenced.ClassName%>Model, (reference: <%-reference.Referenced.ClassName%>Model) => reference.<%-reference.Class.ClassName%>, { eager: false, cascade: false })
+	// <%-reference.Referenced.ClassName%>?: I<%-reference.Referenced.ClassName%>Model
 <%
 			if (index !== Model.OneToOneReversed.length - 1) {
 %>
@@ -65,7 +65,7 @@ export class <%-Model.ClassName%>Model implements I<%-Model.ClassName%>Model {<%
 
 	if (Model.ManyToOne.length !== 0) {
 %>
-	//	Many to One
+	// Many to One
 <%
 		Model.ManyToOne.forEach((reference, index) => {
 %>	@ManyToOne(() => <%-reference.Class.ClassName%>Model, { eager: false, cascade: false })
@@ -81,11 +81,11 @@ export class <%-Model.ClassName%>Model implements I<%-Model.ClassName%>Model {<%
 
 	if (Model.ManyToOneReversed.length !== 0) {
 %>
-	//	One to Many (Reversed)
+	// One to Many (Reversed)
 <%
 		Model.ManyToOneReversed.forEach((reference, index) => {
-%>	@OneToMany(() => <%-reference.Referenced.ClassName%>Model, (reference: <%-reference.Referenced.ClassName%>Model) => reference.<%-reference.Class.ClassName%>, { eager: false, cascade: false })
-	<%-reference.Referenced.ClassName%>List?: I<%-reference.Referenced.ClassName%>Model[]
+%>	// @OneToMany(() => <%-reference.Referenced.ClassName%>Model, (reference: <%-reference.Referenced.ClassName%>Model) => reference.<%-reference.Class.ClassName%>, { eager: false, cascade: false })
+	// <%-reference.Referenced.ClassName%>List?: I<%-reference.Referenced.ClassName%>Model[]
 <%
 			if (index !== Model.ManyToOneReversed.length - 1) {
 %>

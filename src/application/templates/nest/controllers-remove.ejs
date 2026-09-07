@@ -5,5 +5,10 @@
 <%
 	})
 %>	async Remove(@Param() params: <%=Model.ClassName%>Params): Promise<I<%=Model.ClassName%>Response> {
-		return await this.<%-Model.FieldName%>Service.Remove(params)
+		return plainToInstance(<%=Model.ClassName%>Response,
+			await this.<%-Model.FieldName%>Service.Remove(
+				plainToInstance(<%=Model.ClassName%>Key, params, { excludeExtraneousValues: true, enableImplicitConversion: true }),
+			),
+			{ excludeExtraneousValues: true, enableImplicitConversion: true }
+		)
 	}

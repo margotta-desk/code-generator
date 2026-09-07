@@ -4,6 +4,12 @@
 %>	@ApiParam({ name: '<%-property.PropertyName%>', type: String, format: '<%-property.UdtType%>' })
 <%
 	})
-%>	async Update(@Param() params: <%=Model.ClassName%>Params, @Body() body: Partial<<%=Model.ClassName%>Body>): Promise<I<%=Model.ClassName%>Response> {
-		return await this.<%-Model.FieldName%>Service.Update(params, body)
+%>	async Update(@Param() params: <%=Model.ClassName%>Params, @Body() body: <%=Model.ClassName%>Body): Promise<I<%=Model.ClassName%>Response> {
+		return plainToInstance(<%=Model.ClassName%>Response,
+			await this.<%-Model.FieldName%>Service.Update(
+				plainToInstance(<%=Model.ClassName%>Key, params, { excludeExtraneousValues: true, enableImplicitConversion: true }),
+				plainToInstance(<%=Model.ClassName%>Value, body, { excludeExtraneousValues: true, enableImplicitConversion: true })
+			),
+			{ excludeExtraneousValues: true, enableImplicitConversion: true }
+		)
 	}

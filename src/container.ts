@@ -3,7 +3,7 @@ import 'reflect-metadata'
 import path from 'path'
 import { container } from 'tsyringe'
 import { DataSource } from 'typeorm'
-import { BackendService, IBackendService, IMetadataLoaderService, IMonorepoService, INestModulesService, INestService, INestSharedModuleService, INestSrcService, IPackagesService, MetadataLoaderService, MonorepoService, NestModulesService, NestService, NestSharedModuleService, NestSrcService, PackagesService } from './application'
+import { IMetadataLoaderService, IMonorepoService, INestModulesService, INestService, INestSharedModuleService, INestSrcService, IPackagesService, MetadataLoaderService, MonorepoService, NestModulesService, NestService, NestSharedModuleService, NestSrcService, PackagesService } from './application'
 import { IConnectionType } from './cli'
 import { ColumnRepository, ConstraintColumnUsageRepository, IColumnRepository, IConstraintColumnUsageRepository, IKeyColumnUsageRepository, IReferentialConstraintRepository, ISchemataRepository, ITableConstraintRepository, ITableRepository, KeyColumnUsageRepository, ReferentialConstraintRepository, SchemataRepository, TableConstraintRepository, TableRepository } from './infrastructure'
 import { TOKENS } from './tokens'
@@ -34,7 +34,6 @@ export async function registerContainer(connection: IConnectionType): Promise<vo
 	container.register<ITableRepository>(TOKENS.TableRepository, { useClass: TableRepository })
 
 	//	Services
-	container.register<IBackendService>(TOKENS.BackendService, { useClass: BackendService })
 	container.register<IMetadataLoaderService>(TOKENS.MetadataLoaderService, { useClass: MetadataLoaderService })
 	container.register<IMonorepoService>(TOKENS.MonorepoService, { useClass: MonorepoService })
 	container.register<INestModulesService>(TOKENS.NestModulesService, { useClass: NestModulesService })

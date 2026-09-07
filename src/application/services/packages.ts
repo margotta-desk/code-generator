@@ -1,3 +1,4 @@
+import ejs from 'ejs'
 import fs from 'fs'
 import { mkdir } from 'fs/promises'
 import path from 'path'
@@ -5,13 +6,11 @@ import { inject, injectable } from 'tsyringe'
 import { IProjectType } from '../../cli'
 import { TOKENS } from '../../tokens'
 import { IPackagesService } from '../contracts'
-import { ClassModel, DependencyModel, ModuleModel } from '../models'
-import ejs from 'ejs'
 import { Sort } from '../helpers'
+import { ClassModel, ModuleModel } from '../models'
 
 const enumsTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/packages/enums.ejs'), 'utf8')
 const eventsTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/packages/events.ejs'), 'utf8')
-const uisTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/packages/uis.ejs'), 'utf8')
 const uisBodyTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/packages/uis-body.ejs'), 'utf8')
 const uisParamsTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/packages/uis-params.ejs'), 'utf8')
 const uisQueryTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/packages/uis-query.ejs'), 'utf8')
@@ -48,7 +47,7 @@ export class PackagesService implements IPackagesService {
 	private async generateModulePackageJson(projectId: string, modulePath: string, module: ModuleModel) {
 		// const references: ModuleModel[] = await module.getReferences()
 		const references: string[] = module.References.map(m => m.FileName).sort((a, b) => a < b ? 1 : -1)
-		const dependencies = Object.fromEntries(references.map(name => [`@packages/${name}`, `workspace:*`]))
+		const dependencies = Object.fromEntries(references.map(name => [`@${projectId}/${name}`, `workspace:*`]))
 
 
 		let content =
@@ -283,13 +282,13 @@ export class PackagesService implements IPackagesService {
 		const packagesDir = path.join(modulePath, 'src', 'ui')
 		if (!fs.existsSync(packagesDir)) await mkdir(packagesDir, { recursive: true })
 
-		for await (const classModel of module.Classes.filter(f => f.Type == 'entity')) await this.generateModuleUIsBody(projectId, packagesDir, module, classModel)
+		for await (const classModel of module.Classes.filter(f => f.Type == 'entity' && !f.ReadOnly)) await this.generateModuleUIsBody(projectId, packagesDir, module, classModel)
 		for await (const classModel of module.Classes.filter(f => f.Key)) await this.generateModuleUIsParams(projectId, packagesDir, module, classModel)
 		for await (const classModel of module.Classes) await this.generateModuleUIsQuery(projectId, packagesDir, module, classModel)
 		for await (const classModel of module.Classes) await this.generateModuleUIsResponse(projectId, packagesDir, module, classModel)
 
 		const files: string[] = [
-			...module.Classes.filter(f => f.Type == 'entity').map(m => `${m.FileName}.body`),
+			...module.Classes.filter(f => f.Type == 'entity' && !f.ReadOnly).map(m => `${m.FileName}.body`),
 			...module.Classes.filter(f => f.Key).map(m => `${m.FileName}.params`),
 			...module.Classes.map(m => `${m.FileName}.query`),
 			...module.Classes.map(m => `${m.FileName}.response`),
@@ -299,12 +298,7 @@ export class PackagesService implements IPackagesService {
 		fs.writeFileSync(path.join(packagesDir, `index.ts`), barril, 'utf8')
 	}
 
-	private async generateModuleUIsBody(projectId: string, modulePath: string, module: ModuleModel, model: ClassModel) {
-		const outputDir = path.join(modulePath, 'src', 'ui')
-
-		if (!fs.existsSync(outputDir))
-			await mkdir(outputDir, { recursive: true })
-
+	private async generateModuleUIsBody(projectId: string, outputDir: string, module: ModuleModel, model: ClassModel) {
 		let UiImports: Record<string, string[]> = {}
 
 		UiImports = Sort.RecordArrayByKey<string>(UiImports)
@@ -315,12 +309,7 @@ export class PackagesService implements IPackagesService {
 		fs.writeFileSync(path.join(outputDir, `${model.FileName}.body.ts`), Body, 'utf8')
 	}
 
-	private async generateModuleUIsParams(projectId: string, modulePath: string, module: ModuleModel, model: ClassModel) {
-		const outputDir = path.join(modulePath, 'src', 'ui')
-
-		if (!fs.existsSync(outputDir))
-			await mkdir(outputDir, { recursive: true })
-
+	private async generateModuleUIsParams(projectId: string, outputDir: string, module: ModuleModel, model: ClassModel) {
 		let UiImports: Record<string, string[]> = {}
 
 		UiImports = Sort.RecordArrayByKey<string>(UiImports)
@@ -331,12 +320,7 @@ export class PackagesService implements IPackagesService {
 		fs.writeFileSync(path.join(outputDir, `${model.FileName}.params.ts`), Params, 'utf8')
 	}
 
-	private async generateModuleUIsQuery(projectId: string, modulePath: string, module: ModuleModel, model: ClassModel) {
-		const outputDir = path.join(modulePath, 'src', 'ui')
-
-		if (!fs.existsSync(outputDir))
-			await mkdir(outputDir, { recursive: true })
-
+	private async generateModuleUIsQuery(projectId: string, outputDir: string, module: ModuleModel, model: ClassModel) {
 		let UiImports: Record<string, string[]> = {}
 
 		UiImports = Sort.RecordArrayByKey<string>(UiImports)
@@ -347,12 +331,7 @@ export class PackagesService implements IPackagesService {
 		fs.writeFileSync(path.join(outputDir, `${model.FileName}.query.ts`), Query, 'utf8')
 	}
 
-	private async generateModuleUIsResponse(projectId: string, modulePath: string, module: ModuleModel, model: ClassModel) {
-		const outputDir = path.join(modulePath, 'src', 'ui')
-
-		if (!fs.existsSync(outputDir))
-			await mkdir(outputDir, { recursive: true })
-
+	private async generateModuleUIsResponse(projectId: string, outputDir: string, module: ModuleModel, model: ClassModel) {
 		let UiImports: Record<string, string[]> = {};
 
 		([

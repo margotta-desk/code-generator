@@ -9,9 +9,6 @@ import { INestSharedModuleService } from '../contracts'
 import { ModuleModel } from '../models'
 
 const moduleTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/nest/shared-module.ejs'), 'utf8')
-const serializerDecoratorTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/nest/shared-serializer.decorator.ejs'), 'utf8')
-const serializeInterceptorTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/nest/shared-serialize.interceptor.ejs'), 'utf8')
-
 const importsTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/imports.ejs'), 'utf8')
 
 @injectable()
@@ -27,8 +24,6 @@ export class NestSharedModuleService implements INestSharedModuleService {
 		if (!fs.existsSync(outputDir)) await mkdir(moduleDir, { recursive: true })
 
 		await this.generateModule(moduleDir)
-		await this.generateDecorators(moduleDir)
-		await this.generateInterceptors(moduleDir)
 
 		// const barril: string = modules.length == 0
 		// 	? 'export { }'
@@ -36,54 +31,6 @@ export class NestSharedModuleService implements INestSharedModuleService {
 
 		// fs.writeFileSync(path.join(outputDir, `index.ts`), barril, 'utf8')
 
-	}
-
-	private async generateDecorators(moduleDir: string) {
-		const decoratorsDir: string = path.join(moduleDir, 'decorators')
-		if (!fs.existsSync(decoratorsDir)) await mkdir(decoratorsDir, { recursive: true })
-
-		let ModuleImports: Record<string, string[]> = {
-			'@nestjs/common': ['SetMetadata', 'Type'],
-		}
-
-		const Imports = ejs.render(importsTemplate, { UiImports: ModuleImports })
-
-		const rendered: string = ejs.render(serializerDecoratorTemplate, { Imports }).trim()
-		fs.writeFileSync(path.join(decoratorsDir, `serialize.decorator.ts`), rendered, 'utf8')
-
-		{
-			const barril: string = [
-				`export * from './serialize.decorator'`
-			].join('\n')
-
-			fs.writeFileSync(path.join(decoratorsDir, `index.ts`), barril, 'utf8')
-		}
-	}
-
-	private async generateInterceptors(moduleDir: string) {
-		const interceptorsDir: string = path.join(moduleDir, 'interceptors')
-		if (!fs.existsSync(interceptorsDir)) await mkdir(interceptorsDir, { recursive: true })
-
-		let ModuleImports: Record<string, string[]> = {
-			'@nestjs/common': ['CallHandler', 'ExecutionContext', 'Injectable', 'NestInterceptor', 'Type'],
-			'@nestjs/core': ['Reflector'],
-			'class-transformer': ['plainToInstance'],
-			'rxjs': ['map', 'Observable'],
-			'../decorators': ['SERIALIZE_KEY'],
-		}
-
-		const Imports = ejs.render(importsTemplate, { UiImports: ModuleImports })
-
-		const rendered: string = ejs.render(serializeInterceptorTemplate, { Imports }).trim()
-		fs.writeFileSync(path.join(interceptorsDir, `serialize.interceptor.ts`), rendered, 'utf8')
-
-		{
-			const barril: string = [
-				`export * from './serialize.interceptor'`
-			].join('\n')
-
-			fs.writeFileSync(path.join(interceptorsDir, `index.ts`), barril, 'utf8')
-		}
 	}
 
 	private async generateModule(moduleDir: string) {
@@ -100,9 +47,6 @@ export class NestSharedModuleService implements INestSharedModuleService {
 
 		{
 			const barril: string = [
-				`export * from './decorators'`,
-				`export * from './interceptors'`,
-				``,
 				`export * from './shared.module'`,
 			].join('\n')
 

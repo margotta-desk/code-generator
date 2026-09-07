@@ -8,7 +8,6 @@ import { TOKENS } from '../../tokens'
 import { IMonorepoService } from '../contracts'
 import { ModuleModel } from '../models'
 
-// const agentMdTemplate = fs.readFileSync(path.join(import.meta.dirname, '../../templates/monorepo/agents-md.ejs'), 'utf8')
 const editorconfigTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/monorepo/editorconfig.ejs'), 'utf8')
 const gitignoreTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/monorepo/gitignore.ejs'), 'utf8')
 const pnpmWorkspaceYaml = fs.readFileSync(path.join(import.meta.dirname, '../templates/monorepo/pnpm-workspace-yaml.ejs'), 'utf8')

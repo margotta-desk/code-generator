@@ -14,9 +14,7 @@ export class <%-Model.ClassName%>Repository {
 	}
 %>
 	public Get = async (key: I<%-Model.ClassName%>Key): Promise<I<%-Model.ClassName%>Model | null> => await this.repository.findOne({
-		where: {
-			<%- Model.Key?.Properties.map(property => `${property.PropertyName}: key.${property.PropertyName}`).join(',\n\t\t\t') %>
-		}
+		where: plainToInstance(<%-Model.ClassName%>Key, key, { excludeExtraneousValues: true, enableImplicitConversion: true })
 	})
 
 	public Find = async (query: I<%-Model.ClassName%>Query): Promise<I<%-Model.ClassName%>Model[]> => await this.repository.find({ where: await this.where(query) })
@@ -26,9 +24,7 @@ export class <%-Model.ClassName%>Repository {
 	if (!Model.ReadOnly) {
 %>
 	public Create = async (value: I<%-Model.ClassName%>Value): Promise<I<%-Model.ClassName%>Model> => {
-		const item: I<%-Model.ClassName%>Model = await this.repository.save(value)
-
-		const created: I<%-Model.ClassName%>Model = await this.Get(item)
+		const created: I<%-Model.ClassName%>Model = await this.repository.save(value)
 
 		this.eventEmitter.emit(<%-Model.ClassName%>Events.OnCreated, created)
 
@@ -36,15 +32,13 @@ export class <%-Model.ClassName%>Repository {
 	}
 
 	public Update = async (key: I<%-Model.ClassName%>Key, value: Partial<I<%-Model.ClassName%>Value>): Promise<I<%-Model.ClassName%>Model | null> => {
-		const previous: I<%-Model.ClassName%>Model = await this.Get(key)
+		const primaryKey: I<%-Model.ClassName%>Key = plainToInstance(<%-Model.ClassName%>Key, key, { excludeExtraneousValues: true, enableImplicitConversion: true })
+
+		const previous: I<%-Model.ClassName%>Model = await this.repository.findOne({ where: primaryKey })
 
 		if (!previous) return null
 
-		await this.repository.update({
-			<%- Model.Key?.Properties.map(property => `${property.PropertyName}: key.${property.PropertyName}`).join(',\n\t\t\t') %>
-		}, value)
-
-		const updated: I<%-Model.ClassName%>Model = await this.Get(key)
+		const updated: I<%-Model.ClassName%>Model = await this.repository.save({ ...primaryKey, ...value })
 
 		this.eventEmitter.emit(<%-Model.ClassName%>Events.OnUpdated, previous, updated)
 
@@ -52,13 +46,11 @@ export class <%-Model.ClassName%>Repository {
 	}
 
 	public Remove = async (key: I<%-Model.ClassName%>Key): Promise<I<%-Model.ClassName%>Model | null> => {
-		const removed: I<%-Model.ClassName%>Model = await this.Get(key)
+		const removed: I<%-Model.ClassName%>Model = await this.repository.findOne({ where: plainToInstance(<%-Model.ClassName%>Key, key, { excludeExtraneousValues: true, enableImplicitConversion: true }) })
 
 		if (!removed) return null
 
-		await this.repository.delete({
-			<%- Model.Key?.Properties.map(property => `${property.PropertyName}: key.${property.PropertyName}`).join(',\n\t\t\t') %>
-		})
+		await this.repository.delete(plainToInstance(<%-Model.ClassName%>Key, key, { excludeExtraneousValues: true, enableImplicitConversion: true }))
 
 		this.eventEmitter.emit(<%-Model.ClassName%>Events.OnRemoved, removed)
 
@@ -67,7 +59,7 @@ export class <%-Model.ClassName%>Repository {
 <%
 	}
 %>
-	private where = async (query: I<%-Model.ClassName%>Query): Promise<FindOptionsWhere<I<%-Model.ClassName%>Model>> => {
+	private where = async (_query: I<%-Model.ClassName%>Query): Promise<FindOptionsWhere<I<%-Model.ClassName%>Model>> => {
 		const where: FindOptionsWhere<I<%-Model.ClassName%>Model> = {}
 
 		return where

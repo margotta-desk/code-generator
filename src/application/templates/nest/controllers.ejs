@@ -2,8 +2,9 @@
 
 @ApiTags('<%-Model.Module.FileName%>')
 @Controller('<%-Model.FileName%>')
-@Serialize(<%-Model.ClassName%>Response)
 export class <%-Model.ClassName%>Controller {
+	private logger: Logger = new Logger(<%-Model.ClassName%>Controller.name)
+
 	constructor(private readonly <%-Model.FieldName%>Service: <%-Model.ClassName%>Service) { }
 
 	<%-Get.trim()%>

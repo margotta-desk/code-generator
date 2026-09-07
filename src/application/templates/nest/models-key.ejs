@@ -1,0 +1,19 @@
+<%-Imports.trim()%>
+
+export interface I<%-Model.ClassName%>Key {
+<%
+	Model.Key.Properties.forEach((property, index) => {
+%>	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+<%
+	})
+%>}
+
+export class <%-Model.ClassName%>Key implements I<%-Model.ClassName%>Key {
+<%
+	Model.Key.Properties.forEach((property, index) => {
+%>	@ApiProperty({ name: '<%-property.PropertyName%>' })
+	@Expose({ name: '<%-property.PropertyName%>' })
+	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+<%
+	})
+%>}

@@ -5,5 +5,8 @@
 <%
 	})
 %>	async Get(@Param() params: <%=Model.ClassName%>Params): Promise<I<%=Model.ClassName%>Response> {
-		return await this.<%-Model.FieldName%>Service.Get(params)
+		return plainToInstance(<%=Model.ClassName%>Response,
+			await this.<%-Model.FieldName%>Service.Get(plainToInstance(<%=Model.ClassName%>Key, params, { excludeExtraneousValues: true, enableImplicitConversion: true })),
+			{ excludeExtraneousValues: true, enableImplicitConversion: true }
+		)
 	}

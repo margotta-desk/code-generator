@@ -1,17 +1,17 @@
 <%-Imports.trim()%>
 
-export class <%-Model.ClassName%>Response implements I<%-Model.ClassName%>Response {<%
+export class <%- Model.ClassName %>Response implements I<%- Model.ClassName %>Response {<%
 	if (Model.OneToOne.length !== 0)
 	{
 %>
 	//	One to One
 <%
 		Model.OneToOne.forEach((reference, index) => {
-%>	@ApiPropertyOptional({ name: '<%-reference.Class.ClassName%>' })
-	@Expose({ name: '<%-reference.Class.ClassName%>', toClassOnly: true })
-	@Type(() => <%-reference.Class.ClassName%>Response)
-	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Response
-<%
+%>	@ApiPropertyOptional({ name: '<%- reference.DependencyName %>' })
+	@Expose({ name: '<%- reference.DependencyName %>', toClassOnly: true })
+	@Type(() => <%- reference.Class.ClassName %>Response)
+	<%- reference.DependencyName %>?: I<%- reference.Class.ClassName %>Response
+	<%
 			if (index + 1 != Model.OneToOne.length)
 			{
 %>
@@ -27,10 +27,10 @@ export class <%-Model.ClassName%>Response implements I<%-Model.ClassName%>Respon
 	//	Many to One
 <%
 		Model.ManyToOne.forEach((reference, index) => {
-%>	@ApiPropertyOptional({ name: '<%-reference.Class.ClassName%>' })
-	@Expose({ name: '<%-reference.Class.ClassName%>', toClassOnly: true })
-	@Type(() => <%-reference.Class.ClassName%>Response)
-	<%-reference.DependencyName%>?: I<%-reference.Class.ClassName%>Response
+%>	@ApiPropertyOptional({ name: '<%- reference.DependencyName %>' })
+	@Expose({ name: '<%- reference.DependencyName %>', toClassOnly: true })
+	@Type(() => <%- reference.Class.ClassName %>Response)
+	<%- reference.DependencyName %>?: I<%-reference.Class.ClassName %>Response
 <%
 			if (index + 1 != Model.ManyToOne.length)
 			{
@@ -46,12 +46,12 @@ export class <%-Model.ClassName%>Response implements I<%-Model.ClassName%>Respon
 	//	Properties
 <%
 		Model.Properties.forEach((property, index) => {
-%>	@ApiProperty<%property.Nullable ? 'Optional' : '' %>({ name: '<%-property.PropertyName%>'<%
+%>	@ApiProperty<%- property.Nullable ? 'Optional' : '' %>({ name: '<%- property.PropertyName %>'<%
 			if (property.PropertyType === 'Date' && property.UdtType === 'date') { %>, type: String, format: 'date'<% }
 			if (property.PropertyType === 'Date' && property.UdtType === 'timestamp') { %>, type: String, format: 'date-time'<% }
 %> })
-	@Expose({ name: '<%-property.PropertyName%>' })
-	<%-property.PropertyName%><%- property.Nullable ? '?': '' %>: <%-property.PropertyType%>
+	@Expose({ name: '<%- property.PropertyName %>' })
+	<%- property.PropertyName %><%- property.Nullable ? '?': '' %>: <%- property.PropertyType %>
 <%
 			if (index + 1 != Model.Properties.length)
 			{

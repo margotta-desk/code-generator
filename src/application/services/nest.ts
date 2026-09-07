@@ -1,3 +1,4 @@
+import ejs from 'ejs'
 import fs from 'fs'
 import { mkdir } from 'fs/promises'
 import path from 'path'
@@ -7,6 +8,8 @@ import { TOKENS } from '../../tokens'
 import { INestService, INestSrcService } from '../contracts'
 import { Sort } from '../helpers'
 import { ModuleModel } from '../models'
+
+const dotenvTemplate = fs.readFileSync(path.join(import.meta.dirname, '../templates/nest/dotenv.ejs'), 'utf8')
 
 @injectable()
 export class NestService implements INestService {
@@ -20,12 +23,18 @@ export class NestService implements INestService {
 		const outputDir = path.join(import.meta.dirname, '../', '../', '../', 'output', this.project.path, 'apps', 'backend')
 		if (!fs.existsSync(outputDir)) await mkdir(outputDir, { recursive: true })
 
+		await this.generateDotEnv(outputDir)
 		await this.generateNestCli(outputDir)
-		await this.generatePackageJson(outputDir, modules)
+		await this.generatePackageJson(projectId, outputDir, modules)
 		await this.generateTsconfig(outputDir)
 		await this.generateTsconfigBuild(outputDir)
 
 		await this.nestSrcService.Generate(projectId, modules)
+	}
+
+	private async generateDotEnv(outputDir: string) {
+		const rendered: string = ejs.render(dotenvTemplate, {}).trim()
+		fs.writeFileSync(path.join(outputDir, `.env.example`), rendered, 'utf8')
 	}
 
 	private async generateNestCli(outputDir: string) {
@@ -97,7 +106,7 @@ export class NestService implements INestService {
 		fs.writeFileSync(path.join(outputDir, `nest-cli.json`), rendered, 'utf8')
 	}
 
-	private async generatePackageJson(outputDir: string, modules: ModuleModel[]) {
+	private async generatePackageJson(projectId: string, outputDir: string, modules: ModuleModel[]) {
 
 		let dependencies: Record<string, string> = {
 			"@nestjs/common": "^11.1.28",
@@ -127,7 +136,7 @@ export class NestService implements INestService {
 			"typeorm": "^1.1.0"
 		}
 
-		modules.forEach(module => { dependencies[`@packages/${module.FileName}`] = "workspace:*" })
+		modules.forEach(module => { dependencies[`@${projectId}/${module.FileName}`] = "workspace:*" })
 		dependencies = Sort.RecordByKey<string>(dependencies)
 
 		const devDependencies: Record<string, string> = {
@@ -155,10 +164,10 @@ export class NestService implements INestService {
 				"build": "nest build",
 				"clean": "tsc -b --clean && rm -rf node_modules && rm -rf dist",
 				"debug": "nest start --debug --watch --preserveWatchOutput",
-				"dev": "nest start --watch --preserveWatchOutput",
 				"prod": "node dist/main",
 				"start": "nest start",
-				"typecheck": "tsc --noEmit"
+				"typecheck": "tsc --noEmit",
+				"watch": "nest start --watch --preserveWatchOutput"
 			},
 			"dependencies": dependencies,
 			"devDependencies": devDependencies

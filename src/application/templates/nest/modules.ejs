@@ -9,18 +9,43 @@
 		],
 	controllers:
 		[
-			<%= Model.Classes.map(m => `${m.ClassName}Controller,`).join('\n\t\t\t') %>
-		],
+<% 
+		Model.Classes.forEach((model, index) => {
+%>			// <%-model.ClassName%>Controller,
+<%
+		})
+%>		],
 	providers:
 		[
 			//	Repositories
-			<%= Model.Classes.map(m => `${m.ClassName}Repository,`).join('\n\t\t\t') %>
-
+<% 
+		Model.Classes.forEach((model, index) => {
+%>			<%-model.ClassName%>Repository,
+<%
+		})
+%>
 			//	Services
-			<%= Model.Classes.map(m => `${m.ClassName}Service,`).join('\n\t\t\t') %>
-		],
+<% 
+		Model.Classes.forEach((model, index) => {
+%>			<%-model.ClassName%>Service,
+<%
+		})
+%>		],
 	exports:
 		[
-		]
+			//	Repositories
+<% 
+		Model.Classes.forEach((model, index) => {
+%>			<%-model.ClassName%>Repository,
+<%
+		})
+%>
+			//	Services
+<% 
+		Model.Classes.forEach((model, index) => {
+%>			<%-model.ClassName%>Service,
+<%
+		})
+%>		]
 })
 export class <%-Model.ModuleName%>Module { }
